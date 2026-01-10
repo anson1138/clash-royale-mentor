@@ -12,6 +12,7 @@ export default function ReplayAnalyzer() {
   const [expertAdvice, setExpertAdvice] = useState<any[]>([]);
   const [error, setError] = useState('');
   const [disabled, setDisabled] = useState(false);
+  const [selectedBattle, setSelectedBattle] = useState<any>(null);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +23,7 @@ export default function ReplayAnalyzer() {
     setPatterns([]);
     setExpertAdvice([]);
     setDisabled(false);
+    setSelectedBattle(null);
 
     try {
       const response = await fetch('/api/replay-analyzer', {
@@ -239,7 +241,11 @@ export default function ReplayAnalyzer() {
                     const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
                     
                     return (
-                      <div key={idx} className={`${bgColor} border border-gray-200 dark:border-gray-700 rounded-lg p-4`}>
+                      <div 
+                        key={idx} 
+                        className={`${bgColor} border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() => setSelectedBattle(battle)}
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                           {/* Result */}
                           <div className={`md:col-span-1 text-lg font-bold ${resultColor}`}>
@@ -291,6 +297,10 @@ export default function ReplayAnalyzer() {
                             </span>
                           </div>
                         )}
+                        
+                        <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                          Click for detailed analysis →
+                        </div>
                       </div>
                     );
                   })}
@@ -298,6 +308,15 @@ export default function ReplayAnalyzer() {
               </div>
             )}
           </>
+        )}
+
+        {/* Battle Detail Modal */}
+        {selectedBattle && (
+          <BattleDetailModal 
+            battle={selectedBattle} 
+            onClose={() => setSelectedBattle(null)}
+            playerTag={playerInfo?.tag}
+          />
         )}
       </div>
     </div>
@@ -329,4 +348,279 @@ function getTimeAgo(date: Date): string {
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
   
   return date.toLocaleDateString();
+}
+
+interface BattleDetailModalProps {
+  battle: any;
+  onClose: () => void;
+  playerTag?: string;
+}
+
+function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProps) {
+  const playerTeam = battle.team?.[0] || {};
+  const opponent = battle.opponent?.[0] || {};
+  const playerCrowns = playerTeam.crowns || 0;
+  const opponentCrowns = opponent.crowns || 0;
+  const result = playerCrowns > opponentCrowns ? 'WIN' : playerCrowns < opponentCrowns ? 'LOSS' : 'DRAW';
+  const resultColor = result === 'WIN' ? 'text-green-600 dark:text-green-400' : result === 'LOSS' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
+  const bgColor = result === 'WIN' ? 'bg-green-50 dark:bg-green-900/10' : result === 'LOSS' ? 'bg-red-50 dark:bg-red-900/10' : 'bg-gray-50 dark:bg-gray-900/10';
+  
+  const battleDate = battle.battleTime ? parseCRDate(battle.battleTime) : null;
+  const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div 
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className={`${bgColor} p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className={`text-3xl font-bold ${resultColor} mb-2`}>
+                {result}
+              </h2>
+              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <span>🕐 {timeAgo}</span>
+                {battle.gameMode?.name && (
+                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
+                    {battle.gameMode.name}
+                  </span>
+                )}
+                {battle.type && (
+                  <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">
+                    {battle.type.replace(/([A-Z])/g, ' $1').trim()}
+                  </span>
+                )}
+                {battle.arena?.name && (
+                  <span>🏟️ {battle.arena.name}</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Battle Stats */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Player Side */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {playerTeam.name || 'You'}
+                </h3>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  👑 {playerCrowns}
+                </div>
+              </div>
+
+              {/* Trophy Change */}
+              {playerTeam.trophyChange !== undefined && (
+                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Trophy Change</span>
+                    <span className={`text-lg font-bold ${playerTeam.trophyChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {playerTeam.trophyChange >= 0 ? '+' : ''}{playerTeam.trophyChange}
+                    </span>
+                  </div>
+                  {playerTeam.startingTrophies !== undefined && (
+                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      Starting: {playerTeam.startingTrophies} 🏆
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tower HP */}
+              {playerTeam.kingTowerHitPoints !== undefined && (
+                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tower HP</div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">👑 King Tower</span>
+                      <span className={playerTeam.kingTowerHitPoints > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                        {playerTeam.kingTowerHitPoints > 0 ? `${playerTeam.kingTowerHitPoints} HP` : 'Destroyed'}
+                      </span>
+                    </div>
+                    {playerTeam.princessTowersHitPoints?.map((hp: number, idx: number) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">🏰 Princess Tower {idx + 1}</span>
+                        <span className={hp > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                          {hp > 0 ? `${hp} HP` : 'Destroyed'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Deck */}
+              <div className="mb-4">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Deck Used</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {playerTeam.cards?.map((card: any, idx: number) => (
+                    <div key={idx} className="relative group">
+                      <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-2 shadow-md">
+                        <img 
+                          src={card.iconUrls?.medium || '/placeholder-card.png'} 
+                          alt={card.name}
+                          className="w-full h-auto rounded"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder-card.png';
+                          }}
+                        />
+                        <div className="absolute top-1 right-1 bg-black/70 text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                          {card.level}
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-1 text-gray-700 dark:text-gray-300 truncate">
+                        {card.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Opponent Side */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {opponent.name || 'Opponent'}
+                </h3>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  👑 {opponentCrowns}
+                </div>
+              </div>
+
+              {/* Trophy Change */}
+              {opponent.trophyChange !== undefined && (
+                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Trophy Change</span>
+                    <span className={`text-lg font-bold ${opponent.trophyChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {opponent.trophyChange >= 0 ? '+' : ''}{opponent.trophyChange}
+                    </span>
+                  </div>
+                  {opponent.startingTrophies !== undefined && (
+                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      Starting: {opponent.startingTrophies} 🏆
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tower HP */}
+              {opponent.kingTowerHitPoints !== undefined && (
+                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tower HP</div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">👑 King Tower</span>
+                      <span className={opponent.kingTowerHitPoints > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                        {opponent.kingTowerHitPoints > 0 ? `${opponent.kingTowerHitPoints} HP` : 'Destroyed'}
+                      </span>
+                    </div>
+                    {opponent.princessTowersHitPoints?.map((hp: number, idx: number) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">🏰 Princess Tower {idx + 1}</span>
+                        <span className={hp > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                          {hp > 0 ? `${hp} HP` : 'Destroyed'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Deck */}
+              <div className="mb-4">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Opponent's Deck</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {opponent.cards?.map((card: any, idx: number) => (
+                    <div key={idx} className="relative group">
+                      <div className="bg-gradient-to-br from-red-500 to-orange-600 rounded-lg p-2 shadow-md">
+                        <img 
+                          src={card.iconUrls?.medium || '/placeholder-card.png'} 
+                          alt={card.name}
+                          className="w-full h-auto rounded"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder-card.png';
+                          }}
+                        />
+                        <div className="absolute top-1 right-1 bg-black/70 text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                          {card.level}
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-1 text-gray-700 dark:text-gray-300 truncate">
+                        {card.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Battle Info */}
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Battle Information</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              {battle.deckSelection && (
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Deck Selection:</span>
+                  <div className="font-medium text-gray-900 dark:text-white capitalize">
+                    {battle.deckSelection}
+                  </div>
+                </div>
+              )}
+              {battle.isLadderTournament !== undefined && (
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Ladder Tournament:</span>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    {battle.isLadderTournament ? 'Yes' : 'No'}
+                  </div>
+                </div>
+              )}
+              {playerTeam.tag && (
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Your Tag:</span>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    {playerTeam.tag}
+                  </div>
+                </div>
+              )}
+              {opponent.tag && (
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Opponent Tag:</span>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    {opponent.tag}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Close Button */}
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
