@@ -24,33 +24,30 @@ export function analyzeBattles(battles: Battle[]): BattlePattern[] {
     return patterns;
   }
   
-  // Battles come from API in reverse chronological order (newest first)
-  // Reverse them so we analyze from oldest to newest for streak detection
-  const chronologicalBattles = [...battles].reverse();
+  // Pattern 1: Current loss streak (only report if player is currently on a losing streak)
+  // Check most recent battles (battles array is newest first)
+  let currentLossStreak = 0;
   
-  // Pattern 1: Loss streak (check most recent battles for current streak)
-  let lossStreak = 0;
-  let maxLossStreak = 0;
-  
-  for (const battle of chronologicalBattles) {
+  for (const battle of battles) {
     const playerTeam = battle.team[0];
     const result = playerTeam.crowns > battle.opponent[0].crowns ? 'win' : 'loss';
     
     if (result === 'loss') {
-      lossStreak++;
-      maxLossStreak = Math.max(maxLossStreak, lossStreak);
+      currentLossStreak++;
     } else {
-      lossStreak = 0;
+      // Hit a win, stop counting - we only care about CURRENT streak
+      break;
     }
   }
   
-  if (maxLossStreak >= 3) {
+  // Only report if currently on a 3+ loss streak
+  if (currentLossStreak >= 3) {
     patterns.push({
       pattern: 'loss_streak',
-      description: `You lost ${maxLossStreak} battles in a row`,
+      description: `You lost ${currentLossStreak} battles in a row`,
       recommendation: 'Take a break! Tilt can make you play poorly. Come back with a fresh mindset.',
       severity: 'high',
-      occurrences: maxLossStreak,
+      occurrences: currentLossStreak,
     });
   }
   
