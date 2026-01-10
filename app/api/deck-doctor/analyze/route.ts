@@ -6,9 +6,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { cards } = body;
     
-    if (!cards || !Array.isArray(cards) || cards.length !== 8) {
+    if (!cards || !Array.isArray(cards)) {
       return NextResponse.json(
-        { success: false, error: 'Must provide exactly 8 card names' },
+        { success: false, error: 'Invalid request: cards must be an array' },
+        { status: 400 }
+      );
+    }
+
+    if (cards.length !== 8) {
+      return NextResponse.json(
+        { success: false, error: `Must provide exactly 8 card names (received ${cards.length})` },
         { status: 400 }
       );
     }
@@ -27,10 +34,14 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Deck analysis error:', error);
+    
+    // Return user-friendly error message
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+    
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: message,
       },
       { status: 500 }
     );

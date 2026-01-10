@@ -1,19 +1,61 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DeckAnalysis } from '@/lib/deckDoctor/rubric';
+
+type CardOption = {
+  key: string;
+  name: string;
+  type: string;
+  rarity?: string;
+  elixir: number;
+};
 
 export default function DeckDoctor() {
   const [cards, setCards] = useState<string[]>(Array(8).fill(''));
+  const [cardOptions, setCardOptions] = useState<CardOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<DeckAnalysis | null>(null);
   const [expertAdvice, setExpertAdvice] = useState<any[]>([]);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/cards');
+        const data = await res.json();
+        if (!cancelled && data?.success && Array.isArray(data.cards)) {
+          setCardOptions(data.cards);
+        }
+      } catch (err) {
+        // Autocomplete is optional; log but don't block UI
+        console.warn('Failed to load card autocomplete:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const cardNameSet = useMemo(() => {
+    return new Set(cardOptions.map((c) => c.name.toLowerCase()));
+  }, [cardOptions]);
+
   const handleCardChange = (index: number, value: string) => {
     const newCards = [...cards];
     newCards[index] = value;
     setCards(newCards);
+  };
+
+  const normalizeIfExactMatch = (index: number) => {
+    const raw = cards[index]?.trim();
+    if (!raw) return;
+    const match = cardOptions.find((c) => c.name.toLowerCase() === raw.toLowerCase());
+    if (!match || match.name === raw) return;
+    const next = [...cards];
+    next[index] = match.name;
+    setCards(next);
   };
 
   const handleAnalyze = async () => {
@@ -35,26 +77,29 @@ export default function DeckDoctor() {
         setAnalysis(data.analysis);
         setExpertAdvice(data.expertAdvice || []);
       } else {
-        setError(data.error);
+        setError(data.error || 'Analysis failed');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'Network error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   const getGradeColor = (grade: string) => {
-    switch (grade) {
-      case 'S': return 'text-yellow-500';
-      case 'A': return 'text-green-500';
-      case 'B': return 'text-blue-500';
-      case 'C': return 'text-orange-500';
-      case 'D': return 'text-red-500';
-      case 'F': return 'text-red-700';
-      default: return 'text-gray-500';
-    }
+    const colors: Record<string, string> = {
+      S: 'text-yellow-500',
+      A: 'text-green-500',
+      B: 'text-blue-500',
+      C: 'text-orange-500',
+      D: 'text-red-500',
+      F: 'text-red-700',
+    };
+    return colors[grade] || 'text-gray-500';
   };
+
+  const filledCardCount = cards.filter(c => c.trim()).length;
+  const canAnalyze = filledCardCount === 8 && !loading;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
@@ -68,36 +113,59 @@ export default function DeckDoctor() {
             Enter Your 8 Cards
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Type the names of your cards (e.g., "Hog Rider", "Zap", "Wizard")
+            Start typing and pick from the autocomplete (e.g., &quot;Hog Rider&quot;, &quot;Zap&quot;, &quot;Wizard&quot;)
           </p>
+
+          <datalist id="cr-card-names">
+            {cardOptions.map((c) => (
+              <option key={c.key} value={c.name} />
+            ))}
+          </datalist>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {cards.map((card, index) => (
               <div key={index}>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label htmlFor={`card-${index}`} className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Card {index + 1}
                 </label>
                 <input
+                  id={`card-${index}`}
                   type="text"
                   value={card}
                   onChange={(e) => handleCardChange(index, e.target.value)}
+                  onBlur={() => normalizeIfExactMatch(index)}
                   placeholder={`Card ${index + 1}`}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  list="cr-card-names"
+                  autoComplete="off"
+                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
+                {card.trim() && cardOptions.length > 0 && !cardNameSet.has(card.trim().toLowerCase()) && (
+                  <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    ⚠️ Pick from dropdown to avoid typos
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
-          <button
-            onClick={handleAnalyze}
-            disabled={loading || cards.filter(c => c.trim()).length !== 8}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors"
-          >
-            {loading ? 'Analyzing...' : 'Analyze Deck'}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleAnalyze}
+              disabled={!canAnalyze}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg transition-colors"
+              aria-label="Analyze deck"
+            >
+              {loading ? 'Analyzing...' : 'Analyze Deck'}
+            </button>
+            {filledCardCount < 8 && (
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {filledCardCount}/8 cards entered
+              </span>
+            )}
+          </div>
 
           {error && (
-            <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg">
+            <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg" role="alert">
               ❌ {error}
             </div>
           )}
@@ -108,7 +176,7 @@ export default function DeckDoctor() {
             {/* Grade Display */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
               <div className="text-center">
-                <div className={`text-8xl font-bold mb-4 ${getGradeColor(analysis.grade)}`}>
+                <div className={`text-8xl font-bold mb-4 ${getGradeColor(analysis.grade)}`} aria-label={`Grade ${analysis.grade}`}>
                   {analysis.grade}
                 </div>
                 <div className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -126,7 +194,7 @@ export default function DeckDoctor() {
                 <h3 className="text-2xl font-bold mb-4 text-green-800 dark:text-green-300">
                   ✅ Strengths
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-2" role="list">
                   {analysis.strengths.map((strength, idx) => (
                     <li key={idx} className="text-green-700 dark:text-green-400">
                       • {strength}
@@ -142,7 +210,7 @@ export default function DeckDoctor() {
                 <h3 className="text-2xl font-bold mb-4 text-red-800 dark:text-red-300">
                   ⚠️ Issues Found
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-2" role="list">
                   {analysis.issues.map((issue, idx) => (
                     <li key={idx} className="text-red-700 dark:text-red-400">
                       • {issue}
@@ -158,7 +226,7 @@ export default function DeckDoctor() {
                 <h3 className="text-2xl font-bold mb-4 text-blue-800 dark:text-blue-300">
                   💡 Recommendations
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-2" role="list">
                   {analysis.recommendations.map((rec, idx) => (
                     <li key={idx} className="text-blue-700 dark:text-blue-400">
                       • {rec}
