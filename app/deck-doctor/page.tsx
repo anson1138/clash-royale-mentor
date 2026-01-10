@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { DeckAnalysis } from '@/lib/deckDoctor/rubric';
 
 type CardOption = {
@@ -12,12 +13,30 @@ type CardOption = {
 };
 
 export default function DeckDoctor() {
+  const searchParams = useSearchParams();
   const [cards, setCards] = useState<string[]>(Array(8).fill(''));
   const [cardOptions, setCardOptions] = useState<CardOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<DeckAnalysis | null>(null);
   const [expertAdvice, setExpertAdvice] = useState<any[]>([]);
   const [error, setError] = useState('');
+
+  // Load cards from URL parameters
+  useEffect(() => {
+    const cardsParam = searchParams.get('cards');
+    if (cardsParam) {
+      const cardNames = cardsParam.split(',').map(c => c.trim()).filter(c => c);
+      if (cardNames.length > 0) {
+        const newCards = Array(8).fill('');
+        cardNames.forEach((name, idx) => {
+          if (idx < 8) {
+            newCards[idx] = name;
+          }
+        });
+        setCards(newCards);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let cancelled = false;

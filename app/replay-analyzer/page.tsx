@@ -610,8 +610,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
             </div>
           </div>
 
-          {/* Close Button */}
-          <div className="mt-6 flex justify-end">
+          {/* Action Buttons */}
+          <div className="mt-6 flex justify-end gap-3">
+            <a
+              href={`/deck-doctor?cards=${encodeURIComponent(playerTeam.cards?.map((c: any) => c.name).join(',') || '')}`}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+            >
+              🔍 Analyze Your Deck
+            </a>
             <button
               onClick={onClose}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
