@@ -188,6 +188,157 @@ export default function DeckDoctor() {
               </div>
             </div>
 
+            {/* Grade Explanation */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
+              <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+                What Does Your Grade Mean?
+              </h3>
+              
+              {analysis.grade === 'S' && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl font-bold text-yellow-500">S</span>
+                    <div>
+                      <h4 className="text-xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
+                        Meta / Broken (55%+ Win Rate)
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">
+                        <strong>&quot;If you want to win easily, play this.&quot;</strong>
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        The absolute best. This deck defines the current season and has favorable matchups against almost everything else.
+                      </p>
+                      <div className="mt-3">
+                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">Highest chance of winning; frequent &quot;free wins&quot; due to raw power.</p>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">Highly likely to be nerfed in the next update; everyone is trying to counter you.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {analysis.grade === 'A' && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl font-bold text-green-500">A</span>
+                    <div>
+                      <h4 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
+                        Elite / Strong (50% - 55% Win Rate)
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">
+                        <strong>&quot;The Safe Bet.&quot;</strong>
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        Consistent, reliable, and tournament-ready. Strong, balanced, and capable of reaching the highest ranks (Ultimate Champion).
+                      </p>
+                      <div className="mt-3">
+                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">Very stable; safe to upgrade (unlikely to be nerfed heavily); works in almost all arenas.</p>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">You won&apos;t get &quot;carry&quot; wins—you still need to play well to beat S-Tier decks.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {analysis.grade === 'B' && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl font-bold text-blue-500">B</span>
+                    <div>
+                      <h4 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                        Viable / Niche (48% - 50% Win Rate)
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">
+                        <strong>&quot;Skill Required.&quot;</strong>
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        Good, but requires high skill or mastery (One-Trick). These decks are decent but have clear weaknesses or &quot;hard counters&quot; in the current meta.
+                      </p>
+                      <div className="mt-3">
+                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">Opponents might not expect them; very rewarding for players who master a single deck.</p>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">You will lose automatically against certain decks (e.g., playing X-Bow when everyone has Earthquake).</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {analysis.grade === 'C' && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl font-bold text-orange-500">C</span>
+                    <div>
+                      <h4 className="text-xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                        Off-Meta (&lt; 48% Win Rate)
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">
+                        <strong>&quot;Uphill Battle.&quot;</strong>
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        Struggles against top decks; situational. These decks are technically functional but statistically weak and rely on the opponent making huge mistakes.
+                      </p>
+                      <div className="mt-3">
+                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">Fun for casual play; unique playstyles.</p>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
+                        <p className="text-gray-600 dark:text-gray-400 ml-4">You will hit a &quot;trophy wall&quot; where you simply cannot climb higher.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(analysis.grade === 'D' || analysis.grade === 'F') && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className={`text-3xl font-bold ${analysis.grade === 'F' ? 'text-red-700' : 'text-red-500'}`}>
+                      {analysis.grade}
+                    </span>
+                    <div>
+                      <h4 className={`text-xl font-bold mb-2 ${analysis.grade === 'F' ? 'text-red-700 dark:text-red-500' : 'text-red-600 dark:text-red-400'}`}>
+                        {analysis.grade === 'F' ? 'Trash / Meme (< 40% Win Rate)' : 'Off-Meta (< 48% Win Rate)'}
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">
+                        <strong>&quot;{analysis.grade === 'F' ? 'Mathematical Failure' : 'Uphill Battle'}.&quot;</strong>
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        {analysis.grade === 'F' 
+                          ? 'Fundamentally flawed. Do not use. These decks violate core principles of the game (e.g., no win condition, 5.0+ average elixir, all spells).'
+                          : 'These decks struggle significantly and require major improvements to be competitive.'
+                        }
+                      </p>
+                      {analysis.grade === 'F' && (
+                        <>
+                          <div className="mt-3">
+                            <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
+                            <p className="text-gray-600 dark:text-gray-400 ml-4">None.</p>
+                          </div>
+                          <div className="mt-2">
+                            <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
+                            <p className="text-gray-600 dark:text-gray-400 ml-4">You will lose to any competent player. Please review the recommendations below.</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Strengths */}
             {analysis.strengths.length > 0 && (
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg shadow-lg p-8 mb-6">
