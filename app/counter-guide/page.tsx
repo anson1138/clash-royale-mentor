@@ -252,7 +252,7 @@ export default function CounterGuide() {
                       <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
                         Placement Diagram
                       </h4>
-                      <ArenaRenderer placements={counter.placement} width={300} height={400} />
+                      <ArenaRenderer placements={counter.placement} width={350} height={600} />
                     </div>
 
                     <div>
