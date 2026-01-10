@@ -24,11 +24,15 @@ export function analyzeBattles(battles: Battle[]): BattlePattern[] {
     return patterns;
   }
   
-  // Pattern 1: Loss streak
+  // Battles come from API in reverse chronological order (newest first)
+  // Reverse them so we analyze from oldest to newest for streak detection
+  const chronologicalBattles = [...battles].reverse();
+  
+  // Pattern 1: Loss streak (check most recent battles for current streak)
   let lossStreak = 0;
   let maxLossStreak = 0;
   
-  for (const battle of battles) {
+  for (const battle of chronologicalBattles) {
     const playerTeam = battle.team[0];
     const result = playerTeam.crowns > battle.opponent[0].crowns ? 'win' : 'loss';
     
