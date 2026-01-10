@@ -7,6 +7,7 @@ export default function ReplayAnalyzer() {
   const [playerTag, setPlayerTag] = useState('#VY9Q20PR9');
   const [loading, setLoading] = useState(false);
   const [playerInfo, setPlayerInfo] = useState<any>(null);
+  const [battles, setBattles] = useState<any[]>([]);
   const [patterns, setPatterns] = useState<BattlePattern[]>([]);
   const [expertAdvice, setExpertAdvice] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -17,6 +18,7 @@ export default function ReplayAnalyzer() {
     setLoading(true);
     setError('');
     setPlayerInfo(null);
+    setBattles([]);
     setPatterns([]);
     setExpertAdvice([]);
     setDisabled(false);
@@ -32,6 +34,7 @@ export default function ReplayAnalyzer() {
 
       if (data.success) {
         setPlayerInfo(data.player);
+        setBattles(data.battles || []);
         setPatterns(data.patterns || []);
         setExpertAdvice(data.expertAdvice || []);
       } else {
@@ -184,7 +187,7 @@ export default function ReplayAnalyzer() {
 
             {/* Expert Advice */}
             {expertAdvice.length > 0 && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow-lg p-8">
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow-lg p-8 mb-6">
                 <h3 className="text-2xl font-bold mb-4 text-purple-800 dark:text-purple-300">
                   🎓 Expert Coaching Tips
                 </h3>
@@ -202,9 +205,88 @@ export default function ReplayAnalyzer() {
                 </div>
               </div>
             )}
+
+            {/* Battle History */}
+            {battles.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+                  📜 Battle History ({battles.length} battles)
+                </h3>
+                <div className="space-y-3">
+                  {battles.map((battle, idx) => {
+                    const playerTeam = battle.team?.[0] || {};
+                    const opponent = battle.opponent?.[0] || {};
+                    const playerCrowns = playerTeam.crowns || 0;
+                    const opponentCrowns = opponent.crowns || 0;
+                    const result = playerCrowns > opponentCrowns ? 'WIN' : playerCrowns < opponentCrowns ? 'LOSS' : 'DRAW';
+                    const resultColor = result === 'WIN' ? 'text-green-600 dark:text-green-400' : result === 'LOSS' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
+                    const bgColor = result === 'WIN' ? 'bg-green-50 dark:bg-green-900/10' : result === 'LOSS' ? 'bg-red-50 dark:bg-red-900/10' : 'bg-gray-50 dark:bg-gray-900/10';
+                    
+                    const battleDate = new Date(battle.battleTime);
+                    const timeAgo = getTimeAgo(battleDate);
+                    
+                    return (
+                      <div key={idx} className={`${bgColor} border border-gray-200 dark:border-gray-700 rounded-lg p-4`}>
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-4">
+                            <div className={`text-lg font-bold ${resultColor} min-w-[60px]`}>
+                              {result}
+                            </div>
+                            <div className="text-gray-700 dark:text-gray-300">
+                              <span className="font-semibold">🏆 {playerCrowns}</span>
+                              <span className="mx-2">-</span>
+                              <span className="font-semibold">{opponentCrowns}</span>
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              vs {opponent.name || 'Unknown'}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            {battle.type && (
+                              <div className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">
+                                {battle.type.replace(/([A-Z])/g, ' $1').trim()}
+                              </div>
+                            )}
+                            {battle.gameMode?.name && (
+                              <div className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
+                                {battle.gameMode.name}
+                              </div>
+                            )}
+                            <div className="whitespace-nowrap">
+                              🕐 {timeAgo}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Show trophy change if available */}
+                        {battle.team?.[0]?.trophyChange !== undefined && (
+                          <div className="mt-2 text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Trophy change: </span>
+                            <span className={battle.team[0].trophyChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                              {battle.team[0].trophyChange >= 0 ? '+' : ''}{battle.team[0].trophyChange}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
     </div>
   );
+}
+
+function getTimeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  
+  return date.toLocaleDateString();
 }

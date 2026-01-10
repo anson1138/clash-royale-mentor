@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         trophies: playerInfo.trophies,
         bestTrophies: playerInfo.bestTrophies,
       },
+      battles: battleLog,
       patterns,
       expertAdvice: [], // Disabled until OpenAI API configured
       battleCount: battleLog.length,
