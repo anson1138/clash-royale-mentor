@@ -45,7 +45,7 @@ export function analyzeBattles(battles: Battle[]): BattlePattern[] {
     patterns.push({
       pattern: 'loss_streak',
       description: `You lost ${currentLossStreak} battles in a row`,
-      recommendation: 'Take a break! Tilt can make you play poorly. Come back with a fresh mindset.',
+      recommendation: 'Take a break! Tilt can make you play poorly. Come back with a fresh mindset. Also try the Deck Doctor to check if your deck composition needs improvement.',
       severity: 'high',
       occurrences: currentLossStreak,
     });
