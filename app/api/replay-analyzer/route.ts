@@ -1,81 +1,70 @@
-import { NextResponse } from 'next/server';
-import { createClient, getConfig } from '@/lib/clashApi/client';
+import { NextRequest, NextResponse } from 'next/server';
 import { analyzeBattles } from '@/lib/clashApi/patternMiner';
-// import { searchKnowledgeBase } from '@/lib/rag/retrieval'; // Temporarily disabled - requires OpenAI API key
+import {
+  getPlayer,
+  getPlayerBattles,
+  ClashRoyaleAPIError,
+} from '@/lib/clashApi/client';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Check if API is enabled
-    const config = getConfig();
-    if (!config.enabled) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Replay Analyzer is disabled in production. It requires a static-IP proxy setup for the Clash Royale API.',
-          disabled: true,
-        },
-        { status: 503 }
-      );
-    }
-    
-    const body = await request.json();
-    const { playerTag } = body;
-    
+    const { playerTag } = await request.json();
+
     if (!playerTag) {
-      return NextResponse.json(
-        { success: false, error: 'Player tag is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: false,
+        error: 'Player tag is required',
+      });
     }
-    
-    // Ensure tag starts with #
-    const normalizedTag = playerTag.startsWith('#') ? playerTag : `#${playerTag}`;
-    
-    const client = createClient();
-    
-    // Fetch player info and battle log
-    const [playerInfo, battleLog] = await Promise.all([
-      client.getPlayer(normalizedTag),
-      client.getBattleLog(normalizedTag),
-    ]);
-    
-    // Analyze battles for patterns
-    const patterns = analyzeBattles(battleLog);
-    
-    // Expert advice temporarily disabled until OpenAI API key is configured
-    // const expertAdvice = [];
-    // for (const pattern of patterns.slice(0, 2)) {
-    //   const citations = await searchKnowledgeBase(pattern.description, 2);
-    //   if (citations.length > 0) {
-    //     expertAdvice.push({
-    //       pattern: pattern.pattern,
-    //       advice: citations[0].chunkContent,
-    //       source: citations[0].sourceTitle,
-    //     });
-    //   }
-    // }
-    
+
+    // Fetch player data and battles using the RoyaleAPI proxy client
+    const playerData = await getPlayer(playerTag);
+    const battles = await getPlayerBattles(playerTag);
+
+    // Analyze patterns in battle history
+    const patterns = analyzeBattles(battles);
+
+    // RAG/expert advice is optional - can be added later if needed
+    const expertAdvice: any[] = [];
+
     return NextResponse.json({
       success: true,
       player: {
-        tag: playerInfo.tag,
-        name: playerInfo.name,
-        trophies: playerInfo.trophies,
-        bestTrophies: playerInfo.bestTrophies,
+        name: playerData.name,
+        tag: playerData.tag,
+        trophies: playerData.trophies,
+        bestTrophies: playerData.bestTrophies,
+        wins: playerData.wins,
+        losses: playerData.losses,
       },
-      battles: battleLog,
+      battles,
       patterns,
-      expertAdvice: [], // Disabled until OpenAI API configured
-      battleCount: battleLog.length,
+      expertAdvice,
     });
   } catch (error) {
-    console.error('Replay analyzer error:', error);
-    return NextResponse.json(
-      {
+    console.error('Replay Analyzer Error:', error);
+
+    // Handle API-specific errors
+    if (error instanceof ClashRoyaleAPIError) {
+      // Check if it's a configuration error
+      if (error.message.includes('not configured')) {
+        return NextResponse.json({
+          success: false,
+          error:
+            'Clash Royale API is not configured. Please add your API token to .env file.',
+          disabled: true,
+        });
+      }
+
+      return NextResponse.json({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+        error: `API Error: ${error.message}`,
+      });
+    }
+
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    });
   }
 }

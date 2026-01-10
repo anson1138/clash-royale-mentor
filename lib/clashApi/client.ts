@@ -1,73 +1,282 @@
-// Clash Royale API Client
-const API_BASE_URL = 'https://api.clashroyale.com/v1';
+/**
+ * Clash Royale API Client using RoyaleAPI Proxy
+ * 
+ * This client uses the RoyaleAPI proxy service which allows API access
+ * without requiring a static IP address. The proxy is whitelisted with IP 45.79.218.79
+ * 
+ * @see https://docs.royaleapi.com/proxy.html
+ */
 
-interface ClashRoyaleConfig {
-  token: string;
-  enabled: boolean;
+const CLASH_API_TOKEN = process.env.CLASH_ROYALE_API_TOKEN;
+const PROXY_BASE_URL = 'https://proxy.royaleapi.dev/v1';
+
+export class ClashRoyaleAPIError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+    public statusText?: string
+  ) {
+    super(message);
+    this.name = 'ClashRoyaleAPIError';
+  }
 }
 
-export function getConfig(): ClashRoyaleConfig {
-  const token = process.env.CLASH_ROYALE_API_TOKEN || '';
-  const mode = process.env.CR_API_MODE || 'local_only';
-  const isProd = process.env.NODE_ENV === 'production';
-  
-  return {
-    token,
-    enabled: mode !== 'local_only' || !isProd,
+/**
+ * Clean and format a player tag for API requests
+ */
+export function formatPlayerTag(tag: string): string {
+  // Remove # if present, convert to uppercase
+  const cleanTag = tag.replace('#', '').toUpperCase();
+  // Return with # prefix for API
+  return `#${cleanTag}`;
+}
+
+/**
+ * Encode player tag for URL
+ */
+export function encodePlayerTag(tag: string): string {
+  const formattedTag = formatPlayerTag(tag);
+  return encodeURIComponent(formattedTag);
+}
+
+/**
+ * Make a request to the Clash Royale API via RoyaleAPI Proxy
+ */
+async function makeAPIRequest<T>(endpoint: string): Promise<T> {
+  if (!CLASH_API_TOKEN) {
+    throw new ClashRoyaleAPIError(
+      'Clash Royale API token not configured. Please set CLASH_ROYALE_API_TOKEN in your .env file.'
+    );
+  }
+
+  const url = `${PROXY_BASE_URL}${endpoint}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${CLASH_API_TOKEN}`,
+        Accept: 'application/json',
+      },
+      // Cache for 5 minutes to avoid rate limiting
+      next: { revalidate: 300 },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Clash API Error [${response.status}]:`,
+        endpoint,
+        errorText
+      );
+      
+      throw new ClashRoyaleAPIError(
+        `API request failed: ${response.statusText}`,
+        response.status,
+        response.statusText
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof ClashRoyaleAPIError) {
+      throw error;
+    }
+    
+    console.error('Clash API Network Error:', error);
+    throw new ClashRoyaleAPIError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+export interface PlayerData {
+  tag: string;
+  name: string;
+  expLevel: number;
+  trophies: number;
+  bestTrophies: number;
+  wins: number;
+  losses: number;
+  battleCount: number;
+  threeCrownWins: number;
+  challengeCardsWon: number;
+  challengeMaxWins: number;
+  tournamentCardsWon: number;
+  tournamentBattleCount: number;
+  role?: string;
+  donations: number;
+  donationsReceived: number;
+  totalDonations: number;
+  warDayWins: number;
+  clanCardsCollected: number;
+  clan?: {
+    tag: string;
+    name: string;
+    badgeId: number;
+  };
+  arena: {
+    id: number;
+    name: string;
+  };
+  leagueStatistics?: {
+    currentSeason: {
+      rank?: number;
+      trophies: number;
+      bestTrophies: number;
+    };
+    previousSeason?: {
+      id: string;
+      rank?: number;
+      trophies: number;
+      bestTrophies: number;
+    };
+    bestSeason?: {
+      id: string;
+      rank?: number;
+      trophies: number;
+    };
+  };
+  badges: Array<{
+    name: string;
+    level: number;
+    maxLevel: number;
+    progress: number;
+    target: number;
+  }>;
+  achievements: Array<{
+    name: string;
+    stars: number;
+    value: number;
+    target: number;
+    info: string;
+  }>;
+  cards: Array<{
+    name: string;
+    id: number;
+    level: number;
+    maxLevel: number;
+    count: number;
+    iconUrls: {
+      medium: string;
+    };
+  }>;
+  currentDeck: Array<{
+    name: string;
+    id: number;
+    level: number;
+    maxLevel: number;
+    iconUrls: {
+      medium: string;
+    };
+  }>;
+  currentFavouriteCard: {
+    name: string;
+    id: number;
+    maxLevel: number;
+    iconUrls: {
+      medium: string;
+    };
   };
 }
 
-export class ClashRoyaleAPI {
-  private token: string;
-  
-  constructor(token: string) {
-    this.token = token;
-  }
-  
-  private async request(endpoint: string) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Authorization': `Bearer ${this.token}`,
-        'Accept': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`CR API Error: ${response.status} - ${error}`);
-    }
-    
-    return response.json();
-  }
-  
-  /**
-   * Get player info by tag (tag should include #, e.g., "#ABC123")
-   */
-  async getPlayer(playerTag: string) {
-    // Encode the # symbol
-    const encodedTag = encodeURIComponent(playerTag);
-    return this.request(`/players/${encodedTag}`);
-  }
-  
-  /**
-   * Get player's battle log (last 25 battles)
-   */
-  async getBattleLog(playerTag: string) {
-    const encodedTag = encodeURIComponent(playerTag);
-    return this.request(`/players/${encodedTag}/battlelog`);
-  }
+export interface Battle {
+  type: string;
+  battleTime: string;
+  isLadderTournament?: boolean;
+  arena: {
+    id: number;
+    name: string;
+  };
+  gameMode: {
+    id: number;
+    name: string;
+  };
+  deckSelection?: string;
+  team: Array<{
+    tag: string;
+    name: string;
+    startingTrophies?: number;
+    trophyChange?: number;
+    crowns: number;
+    kingTowerHitPoints?: number;
+    princessTowersHitPoints?: number[];
+    cards: Array<{
+      name: string;
+      id: number;
+      level: number;
+      maxLevel: number;
+      iconUrls: {
+        medium: string;
+      };
+    }>;
+  }>;
+  opponent: Array<{
+    tag: string;
+    name: string;
+    startingTrophies?: number;
+    trophyChange?: number;
+    crowns: number;
+    kingTowerHitPoints?: number;
+    princessTowersHitPoints?: number[];
+    cards: Array<{
+      name: string;
+      id: number;
+      level: number;
+      maxLevel: number;
+      iconUrls: {
+        medium: string;
+      };
+    }>;
+  }>;
 }
 
-export function createClient() {
-  const config = getConfig();
-  
-  if (!config.token) {
-    throw new Error('CLASH_ROYALE_API_TOKEN environment variable is not set');
+/**
+ * Get player profile data
+ */
+export async function getPlayer(playerTag: string): Promise<PlayerData> {
+  const encodedTag = encodePlayerTag(playerTag);
+  return makeAPIRequest<PlayerData>(`/players/${encodedTag}`);
+}
+
+/**
+ * Get player battle log (last 25 battles)
+ */
+export async function getPlayerBattles(playerTag: string): Promise<Battle[]> {
+  const encodedTag = encodePlayerTag(playerTag);
+  return makeAPIRequest<Battle[]>(`/players/${encodedTag}/battlelog`);
+}
+
+/**
+ * Get upcoming chests for a player
+ */
+export async function getPlayerUpcomingChests(
+  playerTag: string
+): Promise<{ items: Array<{ index: number; name: string }> }> {
+  const encodedTag = encodePlayerTag(playerTag);
+  return makeAPIRequest(`/players/${encodedTag}/upcomingchests`);
+}
+
+/**
+ * Get all available cards
+ */
+export async function getCards(): Promise<{ items: any[] }> {
+  return makeAPIRequest('/cards');
+}
+
+/**
+ * Check if the API is available and configured correctly
+ */
+export async function healthCheck(): Promise<boolean> {
+  try {
+    if (!CLASH_API_TOKEN) {
+      return false;
+    }
+    
+    // Try to fetch cards list as a health check
+    await getCards();
+    return true;
+  } catch (error) {
+    console.error('Clash API health check failed:', error);
+    return false;
   }
-  
-  if (!config.enabled) {
-    throw new Error('Clash Royale API is disabled in production. Set up a static-IP proxy first.');
-  }
-  
-  return new ClashRoyaleAPI(config.token);
 }

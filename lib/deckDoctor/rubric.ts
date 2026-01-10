@@ -1,4 +1,4 @@
-import { getCardInfo, CARD_ROLES } from './cardDatabase';
+import { getCardInfo, CARD_ROLES, CardInfo } from './cardDatabase';
 
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
 
@@ -24,7 +24,9 @@ export function analyzeDeck(cardNames: string[]): DeckAnalysis {
     throw new Error('Deck must contain exactly 8 cards');
   }
   
-  const cards = cardNames.map(name => getCardInfo(name)).filter(Boolean);
+  const cards = cardNames
+    .map(name => getCardInfo(name))
+    .filter((card): card is CardInfo => card !== null);
   
   if (cards.length !== cardNames.length) {
     const unknownCards = cardNames.filter(name => !getCardInfo(name));

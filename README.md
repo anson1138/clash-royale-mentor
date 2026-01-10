@@ -6,7 +6,7 @@ An AI-powered Clash Royale coaching application to help players improve their ga
 
 - **Deck Doctor**: AI-powered deck analysis with S-F tier grading and actionable improvements
 - **Counter Guide**: Learn how to counter any card with placement diagrams
-- **Replay Analyzer**: Analyze battles from the Clash Royale API (local dev only initially)
+- **Replay Analyzer**: Analyze battles from the Clash Royale API
 - **Tutorials**: 20+ lessons on deck building and strategy
 - **Pro Tips**: Advanced techniques from top players
 - **Admin Sources**: Manage expert content sources with automatic ingestion
@@ -36,7 +36,6 @@ An AI-powered Clash Royale coaching application to help players improve their ga
    ```
    DATABASE_URL="file:./dev.db"
    CLASH_ROYALE_API_TOKEN="your_token_here"
-   CR_API_MODE="local_only"
    OPENAI_API_KEY="your_openai_key_here"
    ```
 
@@ -65,11 +64,10 @@ An AI-powered Clash Royale coaching application to help players improve their ga
 2. **Configure Environment Variables** in Vercel Dashboard → Project Settings → Environment Variables:
    ```
    DATABASE_URL="<your_vercel_postgres_connection_string>"
+   CLASH_ROYALE_API_TOKEN="your_token_here"
    OPENAI_API_KEY="your_openai_key_here"
-   CR_API_MODE="production"
    ```
 
-3. **Important**: The Clash Royale API replay analyzer will not work in production until you set up a static-IP proxy (required for API IP allowlisting)
 
 4. **Build Settings** (automatic with Next.js):
    - Build Command: `npm run build` or `next build`
@@ -102,14 +100,33 @@ datasource db {
 
 Then run migrations on your Vercel Postgres database.
 
-## Clash Royale API (Local Only)
+## Clash Royale API Setup
 
-The Replay Analyzer feature requires:
-- A Clash Royale API token from [developer.clashroyale.com](https://developer.clashroyale.com)
-- Your IP address allowlisted in the developer portal
-- Currently works **local development only**
+The Replay Analyzer feature uses the **RoyaleAPI Proxy** to access the Clash Royale API without requiring a static IP address.
 
-For production, you'll need to set up a static-IP proxy service (documented in the plan).
+### Setup Instructions
+
+1. **Get an API Token**  
+   Visit [developer.clashroyale.com](https://developer.clashroyale.com) and create an API token
+
+2. **Whitelist the RoyaleAPI Proxy IP**  
+   When creating/editing your token, add this IP to the allowlist: `45.79.218.79`
+
+3. **Add Token to Environment Variables**  
+   ```
+   CLASH_ROYALE_API_TOKEN="your_token_here"
+   ```
+
+That's it! The app will automatically use the RoyaleAPI proxy (`https://proxy.royaleapi.dev`) which routes requests through the whitelisted IP.
+
+### How It Works
+
+- Instead of calling `https://api.clashroyale.com` directly, the app uses `https://proxy.royaleapi.dev`
+- The proxy forwards requests through IP `45.79.218.79` (which you whitelisted)
+- This works in both local development and production (including Vercel)
+- No static IP or additional proxy setup required!
+
+For more details, see the [RoyaleAPI Proxy Documentation](https://docs.royaleapi.com/proxy.html).
 
 ## Project Structure
 
@@ -134,8 +151,7 @@ For production, you'll need to set up a static-IP proxy service (documented in t
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `DATABASE_URL` | Database connection string | Yes |
-| `CLASH_ROYALE_API_TOKEN` | Your CR API token | For replay analyzer |
-| `CR_API_MODE` | `local_only` or `production` | Yes |
+| `CLASH_ROYALE_API_TOKEN` | Your CR API token (whitelist 45.79.218.79) | For replay analyzer |
 | `OPENAI_API_KEY` | OpenAI API key for RAG | For AI features |
 
 ## License
