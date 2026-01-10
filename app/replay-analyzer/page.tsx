@@ -212,6 +212,17 @@ export default function ReplayAnalyzer() {
                 <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
                   📜 Battle History ({battles.length} battles)
                 </h3>
+                
+                {/* Column Headers */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 pb-3 border-b border-gray-300 dark:border-gray-600">
+                  <div className="md:col-span-1 text-sm font-semibold text-gray-600 dark:text-gray-400">Result</div>
+                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Score</div>
+                  <div className="md:col-span-3 text-sm font-semibold text-gray-600 dark:text-gray-400">Opponent</div>
+                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Type</div>
+                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Mode</div>
+                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Time</div>
+                </div>
+                
                 <div className="space-y-3">
                   {battles.map((battle, idx) => {
                     const playerTeam = battle.team?.[0] || {};
@@ -222,8 +233,10 @@ export default function ReplayAnalyzer() {
                     const resultColor = result === 'WIN' ? 'text-green-600 dark:text-green-400' : result === 'LOSS' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
                     const bgColor = result === 'WIN' ? 'bg-green-50 dark:bg-green-900/10' : result === 'LOSS' ? 'bg-red-50 dark:bg-red-900/10' : 'bg-gray-50 dark:bg-gray-900/10';
                     
-                    const battleDate = new Date(battle.battleTime);
-                    const timeAgo = getTimeAgo(battleDate);
+                    // Parse date properly - Clash Royale API returns non-standard ISO format
+                    // Format: 20260110T060158.000Z -> 2026-01-10T06:01:58.000Z
+                    const battleDate = battle.battleTime ? parseCRDate(battle.battleTime) : null;
+                    const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
                     
                     return (
                       <div key={idx} className={`${bgColor} border border-gray-200 dark:border-gray-700 rounded-lg p-4`}>
@@ -278,6 +291,22 @@ export default function ReplayAnalyzer() {
       </div>
     </div>
   );
+}
+
+function parseCRDate(crDate: string): Date | null {
+  // Clash Royale API format: 20260110T060158.000Z -> 2026-01-10T06:01:58.000Z
+  if (!crDate || crDate.length < 15) return null;
+  
+  const year = crDate.substring(0, 4);
+  const month = crDate.substring(4, 6);
+  const day = crDate.substring(6, 8);
+  const hour = crDate.substring(9, 11);
+  const min = crDate.substring(11, 13);
+  const sec = crDate.substring(13, 15);
+  const ms = crDate.substring(15); // .000Z
+  
+  const isoDate = `${year}-${month}-${day}T${hour}:${min}:${sec}${ms}`;
+  return new Date(isoDate);
 }
 
 function getTimeAgo(date: Date): string {
