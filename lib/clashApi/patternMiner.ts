@@ -71,7 +71,7 @@ export function analyzeBattles(battles: Battle[]): BattlePattern[] {
       patterns.push({
         pattern: 'archetype_weakness',
         description: `Lost ${count} times against ${archetype} decks`,
-        recommendation: `Study how to counter ${archetype}. Check the Counter Guide for specific matchup tips.`,
+        recommendation: `Study how to counter ${archetype}. Check the Counter Guide for specific matchup tips, and use Deck Doctor to ensure your deck has the right tools to handle this matchup.`,
         severity: 'medium',
         occurrences: count,
       });
