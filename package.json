@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "counter:verify": "node scripts/updateCounterStrategies.mjs verify",
+    "counter:stats": "node scripts/updateCounterStrategies.mjs stats",
+    "counter:missing": "node scripts/updateCounterStrategies.mjs missing",
+    "counter:export": "node scripts/updateCounterStrategies.mjs export"
   },
   "keywords": [],
   "author": "",
