@@ -240,34 +240,45 @@ export default function ReplayAnalyzer() {
                     
                     return (
                       <div key={idx} className={`${bgColor} border border-gray-200 dark:border-gray-700 rounded-lg p-4`}>
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-4">
-                            <div className={`text-lg font-bold ${resultColor} min-w-[60px]`}>
-                              {result}
-                            </div>
-                            <div className="text-gray-700 dark:text-gray-300">
-                              <span className="font-semibold">🏆 {playerCrowns}</span>
-                              <span className="mx-2">-</span>
-                              <span className="font-semibold">{opponentCrowns}</span>
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              vs {opponent.name || 'Unknown'}
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                          {/* Result */}
+                          <div className={`md:col-span-1 text-lg font-bold ${resultColor}`}>
+                            {result}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                          
+                          {/* Score */}
+                          <div className="md:col-span-2 text-gray-700 dark:text-gray-300">
+                            <span className="font-semibold">🏆 {playerCrowns}</span>
+                            <span className="mx-2">-</span>
+                            <span className="font-semibold">{opponentCrowns}</span>
+                          </div>
+                          
+                          {/* Opponent */}
+                          <div className="md:col-span-3 text-sm text-gray-600 dark:text-gray-400">
+                            vs {opponent.name || 'Unknown'}
+                          </div>
+                          
+                          {/* Type */}
+                          <div className="md:col-span-2">
                             {battle.type && (
-                              <div className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">
+                              <div className="inline-block px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm text-gray-600 dark:text-gray-400">
                                 {battle.type.replace(/([A-Z])/g, ' $1').trim()}
                               </div>
                             )}
+                          </div>
+                          
+                          {/* Mode */}
+                          <div className="md:col-span-2">
                             {battle.gameMode?.name && (
-                              <div className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
+                              <div className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-sm">
                                 {battle.gameMode.name}
                               </div>
                             )}
-                            <div className="whitespace-nowrap">
-                              🕐 {timeAgo}
-                            </div>
+                          </div>
+                          
+                          {/* Time */}
+                          <div className="md:col-span-2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                            🕐 {timeAgo}
                           </div>
                         </div>
                         
