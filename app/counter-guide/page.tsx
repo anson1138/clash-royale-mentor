@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArenaRenderer } from '@/components/ArenaRenderer';
 import { CounterStrategy } from '@/lib/counterGuide/strategies';
 import { Citation } from '@/lib/rag/retrieval';
@@ -11,6 +11,93 @@ export default function CounterGuide() {
   const [strategy, setStrategy] = useState<CounterStrategy | null>(null);
   const [expertAdvice, setExpertAdvice] = useState<Citation[]>([]);
   const [error, setError] = useState('');
+  const [allCards, setAllCards] = useState<string[]>([]);
+  const [filteredCards, setFilteredCards] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all card names on component mount
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const response = await fetch('/api/counter-guide/cards');
+        const data = await response.json();
+        if (data.success) {
+          setAllCards(data.cards);
+        }
+      } catch (err) {
+        console.error('Failed to fetch cards:', err);
+      }
+    };
+    fetchCards();
+  }, []);
+
+  // Filter cards based on search term
+  useEffect(() => {
+    if (searchTerm.trim().length === 0) {
+      setFilteredCards([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const filtered = allCards.filter(card =>
+      card.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredCards(filtered);
+    setShowSuggestions(filtered.length > 0);
+    setSelectedIndex(-1);
+  }, [searchTerm, allCards]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev =>
+          prev < filteredCards.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        if (selectedIndex >= 0) {
+          e.preventDefault();
+          selectCard(filteredCards[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        break;
+    }
+  };
+
+  const selectCard = (card: string) => {
+    setSearchTerm(card);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,16 +150,54 @@ export default function CounterGuide() {
               How do I counter...
             </label>
             <div className="flex gap-4">
-              <input
-                type="text"
-                name="cardName"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="e.g., Hog Rider, Mega Knight, Balloon"
-                className="flex-1 px-4 py-3 border rounded-lg text-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                autoComplete="off"
-                required
-              />
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  name="cardName"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => {
+                    if (filteredCards.length > 0) {
+                      setShowSuggestions(true);
+                    }
+                  }}
+                  placeholder="e.g., Hog Rider, Mega Knight, Balloon"
+                  className="w-full px-4 py-3 border rounded-lg text-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  autoComplete="off"
+                  required
+                />
+                
+                {/* Autocomplete suggestions */}
+                {showSuggestions && filteredCards.length > 0 && (
+                  <div
+                    ref={suggestionsRef}
+                    className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                  >
+                    {filteredCards.slice(0, 10).map((card, index) => (
+                      <div
+                        key={card}
+                        onClick={() => selectCard(card)}
+                        className={`px-4 py-2 cursor-pointer transition-colors ${
+                          index === selectedIndex
+                            ? 'bg-blue-100 dark:bg-blue-900'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {card}
+                        </div>
+                      </div>
+                    ))}
+                    {filteredCards.length > 10 && (
+                      <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 text-center border-t dark:border-gray-600">
+                        +{filteredCards.length - 10} more cards
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <button
                 type="submit"
                 disabled={loading}
@@ -86,6 +211,13 @@ export default function CounterGuide() {
           {error && (
             <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg">
               ❌ {error}
+            </div>
+          )}
+          
+          {/* Helper text */}
+          {!searchTerm && allCards.length > 0 && (
+            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              💡 Start typing to see suggestions from {allCards.length} available cards
             </div>
           )}
         </div>
