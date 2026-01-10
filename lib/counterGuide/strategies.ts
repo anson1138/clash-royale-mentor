@@ -1508,6 +1508,1414 @@ export const COUNTER_STRATEGIES: Record<string, CounterStrategy> = {
       },
     ],
   },
+  'wizard': {
+    targetCard: 'Wizard',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Wizard',
+          },
+        ],
+        notes: 'One-shot kill. Even trade. Meta standard for dealing with Wizard.',
+      },
+      {
+        card: 'Lightning',
+        cost: 6,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Lightning',
+            description: 'Lightning the Wizard and support',
+          },
+        ],
+        notes: 'Kills Wizard instantly. Positive when hitting multiple troops.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Place Knight to tank and kill Wizard',
+          },
+        ],
+        notes: 'Tanks splash damage. Positive trade. Tower helps finish.',
+      },
+    ],
+  },
+  'musketeer': {
+    targetCard: 'Musketeer',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Musketeer',
+          },
+        ],
+        notes: 'One-shot kill. Even trade. Standard counter.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Place Knight to rush Musketeer',
+          },
+        ],
+        notes: 'Positive trade. Tanks hits while closing distance.',
+      },
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Mini P.E.K.K.A',
+            description: 'Rush with Mini PEKKA',
+          },
+        ],
+        notes: 'Quick elimination. Even trade.',
+      },
+    ],
+  },
+  'baby-dragon': {
+    targetCard: 'Baby Dragon',
+    counterCards: [
+      {
+        card: 'Mega Minion',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Mega Minion',
+            description: 'Place Mega Minion to counter Baby Dragon',
+          },
+        ],
+        notes: 'Air vs air. Positive trade. Reliable counter.',
+      },
+      {
+        card: 'Musketeer',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 15 },
+            card: 'Musketeer',
+            description: 'Place Musketeer to shoot down Baby Dragon',
+          },
+        ],
+        notes: 'Even trade. Good range. Survives for counterpush.',
+      },
+      {
+        card: 'Bats',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Bats',
+            description: 'Swarm Baby Dragon with Bats',
+          },
+        ],
+        notes: 'Positive trade if unzapped. Fast elimination.',
+      },
+    ],
+  },
+  'giant': {
+    targetCard: 'Giant',
+    counterCards: [
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: PLACEMENT_POSITIONS.CENTER_DEFENSE,
+            card: 'Mini P.E.K.K.A',
+            description: 'Place Mini PEKKA to shred Giant',
+          },
+        ],
+        notes: 'High DPS melts Giant. Positive trade. Meta standard.',
+      },
+      {
+        card: 'Inferno Tower',
+        cost: 5,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: PLACEMENT_POSITIONS.CENTER_DEFENSE,
+            card: 'Inferno Tower',
+            description: 'Place Inferno Tower to melt Giant',
+          },
+        ],
+        notes: 'Hard counter. Even trade. Watch for Lightning/EQ.',
+      },
+      {
+        card: 'Barbarians',
+        cost: 5,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Barbarians',
+            description: 'Surround Giant with Barbarians',
+          },
+        ],
+        notes: 'Swarm kills Giant. Even trade. Watch for splash support.',
+      },
+    ],
+  },
+  'elite-barbarians': {
+    targetCard: 'Elite Barbarians',
+    counterCards: [
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie to splash both E-Barbs',
+          },
+        ],
+        notes: 'Splash hits both. Positive trade. Hard counter.',
+      },
+      {
+        card: 'Skeleton Army',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Skeleton Army',
+            description: 'Surround E-Barbs with Skeleton Army',
+          },
+        ],
+        notes: 'Swarm eliminates fast. Positive trade. Watch for Zap/Log.',
+      },
+      {
+        card: 'Bowler',
+        cost: 5,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Bowler',
+            description: 'Place Bowler to knockback E-Barbs',
+          },
+        ],
+        notes: 'Knockback and damage. Even trade. Good with tower.',
+      },
+    ],
+  },
+  'bandit': {
+    targetCard: 'Bandit',
+    counterCards: [
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Place Knight to stop Bandit dash',
+          },
+        ],
+        notes: 'Stops dash. Even trade. Reliable counter.',
+      },
+      {
+        card: 'Skeletons',
+        cost: 1,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Skeletons',
+            description: 'Place Skeletons to distract Bandit',
+          },
+        ],
+        notes: 'Positive trade. Breaks dash. Timing critical.',
+      },
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'The Log',
+            description: 'Log the Bandit',
+          },
+        ],
+        notes: 'Positive trade. Stops dash. May take tower hit.',
+      },
+    ],
+  },
+  'dark-prince': {
+    targetCard: 'Dark Prince',
+    counterCards: [
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Place Knight to tank Dark Prince charge',
+          },
+        ],
+        notes: 'Tanks charge. Even trade. Standard counter.',
+      },
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Mini P.E.K.K.A',
+            description: 'Place Mini PEKKA to shred Dark Prince',
+          },
+        ],
+        notes: 'High DPS. Even trade. Quick elimination.',
+      },
+      {
+        card: 'Skeletons',
+        cost: 1,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Skeletons',
+            description: 'Use Skeletons to break shield',
+          },
+        ],
+        notes: 'Breaks shield and charge. Positive trade with tower help.',
+      },
+    ],
+  },
+  'executioner': {
+    targetCard: 'Executioner',
+    counterCards: [
+      {
+        card: 'Lightning',
+        cost: 6,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Lightning',
+            description: 'Lightning the Executioner',
+          },
+        ],
+        notes: 'One-shot kill. Positive trade when hitting multiple units.',
+      },
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Mini P.E.K.K.A',
+            description: 'Rush Executioner with Mini PEKKA',
+          },
+        ],
+        notes: 'High DPS. Positive trade. Fast elimination.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Tank Executioner with Knight',
+          },
+        ],
+        notes: 'Tanks axes. Positive trade with tower help.',
+      },
+    ],
+  },
+  'night-witch': {
+    targetCard: 'Night Witch',
+    counterCards: [
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie to splash Night Witch and bats',
+          },
+        ],
+        notes: 'Splash kills witch and bats. Even trade.',
+      },
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball Night Witch and bats',
+          },
+        ],
+        notes: 'Kills witch and bats. Even trade. Clean counter.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Arrows',
+            description: 'Arrows to kill bats, tower helps with witch',
+          },
+        ],
+        notes: 'Kills bats. Positive trade with tower on witch.',
+      },
+    ],
+  },
+  'hunter': {
+    targetCard: 'Hunter',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Hunter',
+          },
+        ],
+        notes: 'One-shot kill. Even trade. Standard counter.',
+      },
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Mini P.E.K.K.A',
+            description: 'Rush Hunter with Mini PEKKA',
+          },
+        ],
+        notes: 'Close range eliminates Hunter. Even trade.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Tank Hunter shots with Knight',
+          },
+        ],
+        notes: 'Tanks damage. Positive trade with tower.',
+      },
+    ],
+  },
+  'lumberjack': {
+    targetCard: 'Lumberjack',
+    counterCards: [
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Place Knight to counter Lumberjack',
+          },
+        ],
+        notes: 'Tanks hits. Positive trade. Move away from rage.',
+      },
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie to eliminate Lumberjack',
+          },
+        ],
+        notes: 'Even trade. Handles support troops with splash.',
+      },
+      {
+        card: 'Skeleton Army',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Skeleton Army',
+            description: 'Swarm Lumberjack with Skeleton Army',
+          },
+        ],
+        notes: 'Fast kill. Even trade. Watch for Log/Zap.',
+      },
+    ],
+  },
+  'magic-archer': {
+    targetCard: 'Magic Archer',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Magic Archer',
+          },
+        ],
+        notes: 'One-shot kill. Even trade. Prevents chip damage.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Rush Magic Archer with Knight',
+          },
+        ],
+        notes: 'Positive trade. Fast kill with tower.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Arrows',
+            description: 'Arrows the Magic Archer',
+          },
+        ],
+        notes: 'Kills Magic Archer. Even trade.',
+      },
+    ],
+  },
+  'princess': {
+    targetCard: 'Princess',
+    counterCards: [
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'The Log',
+            description: 'Log the Princess',
+          },
+        ],
+        notes: 'Perfect counter. Positive trade. Instant elimination.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Princess',
+          },
+        ],
+        notes: 'One-shot kill. Even trade. Reliable.',
+      },
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'Fireball',
+            description: 'Fireball the Princess',
+          },
+        ],
+        notes: 'Kills Princess. Negative trade unless hitting tower/troops.',
+      },
+    ],
+  },
+  'royal-hogs': {
+    targetCard: 'Royal Hogs',
+    counterCards: [
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie to splash Royal Hogs',
+          },
+        ],
+        notes: 'Splash hits all hogs. Positive trade. Meta counter.',
+      },
+      {
+        card: 'Bowler',
+        cost: 5,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Bowler',
+            description: 'Place Bowler to knockback Royal Hogs',
+          },
+        ],
+        notes: 'Knockback and splash. Even trade. Strong counter.',
+      },
+      {
+        card: 'Barbarians',
+        cost: 5,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Barbarians',
+            description: 'Spread Barbarians to counter Royal Hogs',
+          },
+        ],
+        notes: 'Swarm eliminates hogs. Even trade.',
+      },
+    ],
+  },
+  'royal-ghost': {
+    targetCard: 'Royal Ghost',
+    counterCards: [
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Place Knight to counter Royal Ghost',
+          },
+        ],
+        notes: 'Even trade. Reveals ghost. Standard counter.',
+      },
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie to kill Royal Ghost',
+          },
+        ],
+        notes: 'Negative trade but handles support units.',
+      },
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'The Log',
+            description: 'Log the Royal Ghost',
+          },
+        ],
+        notes: 'Positive trade. Reveals and damages ghost.',
+      },
+    ],
+  },
+  'mother-witch': {
+    targetCard: 'Mother Witch',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Mother Witch',
+          },
+        ],
+        notes: 'One-shot kill. Even trade. Prevents pig transformation.',
+      },
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Mini P.E.K.K.A',
+            description: 'Rush Mother Witch with Mini PEKKA',
+          },
+        ],
+        notes: 'Fast elimination. Even trade. Single unit counters well.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Tank with Knight',
+          },
+        ],
+        notes: 'Positive trade. Avoid swarm units that turn to pigs.',
+      },
+    ],
+  },
+  'goblin-gang': {
+    targetCard: 'Goblin Gang',
+    counterCards: [
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'The Log',
+            description: 'Log the Goblin Gang',
+          },
+        ],
+        notes: 'Perfect counter. Positive trade. Eliminates all goblins.',
+      },
+      {
+        card: 'Zap',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Zap',
+            description: 'Zap Goblin Gang',
+          },
+        ],
+        notes: 'Kills all goblins. Even trade. Fast reaction.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Goblin Gang',
+          },
+        ],
+        notes: 'Full elimination. Negative trade but reliable.',
+      },
+    ],
+  },
+  'minion-horde': {
+    targetCard: 'Minion Horde',
+    counterCards: [
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Minion Horde',
+          },
+        ],
+        notes: 'Perfect counter. Positive trade. Eliminates all minions.',
+      },
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Fireball',
+            description: 'Fireball the Minion Horde',
+          },
+        ],
+        notes: 'Kills all minions. Positive trade. Reliable.',
+      },
+      {
+        card: 'Wizard',
+        cost: 5,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 15 },
+            card: 'Wizard',
+            description: 'Splash Minion Horde with Wizard',
+          },
+        ],
+        notes: 'Splash eliminates horde. Even trade.',
+      },
+    ],
+  },
+  'minions': {
+    targetCard: 'Minions',
+    counterCards: [
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Minions',
+          },
+        ],
+        notes: 'Perfect counter. Even trade.',
+      },
+      {
+        card: 'Mega Minion',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Mega Minion',
+            description: 'Counter with Mega Minion',
+          },
+        ],
+        notes: 'Air vs air. Even trade. Survives for counterpush.',
+      },
+      {
+        card: 'Zap',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Zap',
+            description: 'Zap the Minions',
+          },
+        ],
+        notes: 'Kills underleveled. Positive trade with tower help.',
+      },
+    ],
+  },
+  'bats': {
+    targetCard: 'Bats',
+    counterCards: [
+      {
+        card: 'Zap',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Zap',
+            description: 'Zap the Bats',
+          },
+        ],
+        notes: 'Perfect counter. Even trade. Instant elimination.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Bats',
+          },
+        ],
+        notes: 'Kills all bats. Negative trade but reliable.',
+      },
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'fair',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'The Log',
+            description: 'Log when Bats land (doesn\'t hit air)',
+          },
+        ],
+        notes: 'Only works if bats are targeting ground units. Situational.',
+      },
+    ],
+  },
+  'goblin-drill': {
+    targetCard: 'Goblin Drill',
+    counterCards: [
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 29 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie on drill location',
+          },
+        ],
+        notes: 'Splash kills all goblins. Even trade. Best counter.',
+      },
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 29 },
+            card: 'The Log',
+            description: 'Log the emerging Goblins',
+          },
+        ],
+        notes: 'Kills goblins. Positive trade. Timing critical.',
+      },
+      {
+        card: 'Bomber',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 28 },
+            card: 'Bomber',
+            description: 'Place Bomber to splash goblins',
+          },
+        ],
+        notes: 'Splash eliminates goblins. Positive trade.',
+      },
+    ],
+  },
+  'skeleton-dragons': {
+    targetCard: 'Skeleton Dragons',
+    counterCards: [
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Skeleton Dragons',
+          },
+        ],
+        notes: 'Kills both dragons. Positive trade.',
+      },
+      {
+        card: 'Mega Minion',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Mega Minion',
+            description: 'Use Mega Minion to counter',
+          },
+        ],
+        notes: 'Air vs air. Negative trade but survives.',
+      },
+      {
+        card: 'Musketeer',
+        cost: 4,
+        effectiveness: 'fair',
+        placement: [
+          {
+            position: { x: 9, y: 15 },
+            card: 'Musketeer',
+            description: 'Shoot down Skeleton Dragons',
+          },
+        ],
+        notes: 'Kills dragons. Even trade.',
+      },
+    ],
+  },
+  'rascals': {
+    targetCard: 'Rascals',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Rascals',
+          },
+        ],
+        notes: 'Kills girls, damages boy. Positive trade with tower.',
+      },
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Splash Rascals with Valkyrie',
+          },
+        ],
+        notes: 'Splash hits all. Positive trade. Strong counter.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Arrows',
+            description: 'Cast Arrows to kill girls',
+          },
+        ],
+        notes: 'Kills Rascal Girls. Positive trade with tower on boy.',
+      },
+    ],
+  },
+  'three-musketeers': {
+    targetCard: 'Three Musketeers',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball all Three Musketeers',
+          },
+        ],
+        notes: 'Massive positive trade if hitting all three. Best counter.',
+      },
+      {
+        card: 'Lightning',
+        cost: 6,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Lightning',
+            description: 'Lightning the group',
+          },
+        ],
+        notes: 'Kills all three. Positive trade. Hard counter.',
+      },
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Tank and splash with Valkyrie',
+          },
+        ],
+        notes: 'Tanks damage while dealing splash. Massive positive trade.',
+      },
+    ],
+  },
+  'guards': {
+    targetCard: 'Guards',
+    counterCards: [
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'The Log',
+            description: 'Log the Guards',
+          },
+        ],
+        notes: 'Breaks shields and eliminates. Positive trade.',
+      },
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Splash Guards with Valkyrie',
+          },
+        ],
+        notes: 'Splash breaks shields and kills. Negative trade.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'fair',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Guards',
+          },
+        ],
+        notes: 'Breaks shields. Tower finishes. Even trade.',
+      },
+    ],
+  },
+  'barbarians': {
+    targetCard: 'Barbarians',
+    counterCards: [
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Barbarians',
+          },
+        ],
+        notes: 'Heavy damage to all. Positive trade with tower help.',
+      },
+      {
+        card: 'Valkyrie',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Valkyrie',
+            description: 'Place Valkyrie to splash Barbarians',
+          },
+        ],
+        notes: 'Splash kills all. Positive trade. Hard counter.',
+      },
+      {
+        card: 'Bomber',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Bomber',
+            description: 'Splash Barbarians with Bomber',
+          },
+        ],
+        notes: 'Splash damage eliminates. Positive trade.',
+      },
+    ],
+  },
+  'archers': {
+    targetCard: 'Archers',
+    counterCards: [
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Archers',
+          },
+        ],
+        notes: 'Kills both archers. Even trade.',
+      },
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'The Log',
+            description: 'Log the Archers',
+          },
+        ],
+        notes: 'Kills both. Positive trade.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Rush Archers with Knight',
+          },
+        ],
+        notes: 'Tanks and kills. Even trade.',
+      },
+    ],
+  },
+  'firecracker': {
+    targetCard: 'Firecracker',
+    counterCards: [
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'The Log',
+            description: 'Log the Firecracker',
+          },
+        ],
+        notes: 'Perfect counter. Positive trade. Instant kill.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Firecracker',
+          },
+        ],
+        notes: 'One-shot kill. Even trade.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Rush Firecracker with Knight',
+          },
+        ],
+        notes: 'Fast elimination. Even trade.',
+      },
+    ],
+  },
+  'dart-goblin': {
+    targetCard: 'Dart Goblin',
+    counterCards: [
+      {
+        card: 'The Log',
+        cost: 2,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'The Log',
+            description: 'Log the Dart Goblin',
+          },
+        ],
+        notes: 'Perfect counter. Positive trade.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 25 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Dart Goblin',
+          },
+        ],
+        notes: 'One-shot kill. Even trade.',
+      },
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Rush with Knight',
+          },
+        ],
+        notes: 'Fast kill. Even trade.',
+      },
+    ],
+  },
+  'ice-wizard': {
+    targetCard: 'Ice Wizard',
+    counterCards: [
+      {
+        card: 'Knight',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Knight',
+            description: 'Rush Ice Wizard with Knight',
+          },
+        ],
+        notes: 'Tanks and kills. Even trade.',
+      },
+      {
+        card: 'Fireball',
+        cost: 4,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 18 },
+            card: 'Fireball',
+            description: 'Fireball the Ice Wizard',
+          },
+        ],
+        notes: 'Heavy damage. Tower finishes. Even trade.',
+      },
+      {
+        card: 'Mini P.E.K.K.A',
+        cost: 4,
+        effectiveness: 'fair',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Mini P.E.K.K.A',
+            description: 'Rush with Mini PEKKA',
+          },
+        ],
+        notes: 'Quick elimination. Negative trade.',
+      },
+    ],
+  },
+  'electro-dragon': {
+    targetCard: 'Electro Dragon',
+    counterCards: [
+      {
+        card: 'Musketeer',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 15 },
+            card: 'Musketeer',
+            description: 'Place Musketeer to shoot down Electro Dragon',
+          },
+        ],
+        notes: 'Air counter. Positive trade. Survives stuns.',
+      },
+      {
+        card: 'Mega Minion',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Mega Minion',
+            description: 'Counter with Mega Minion',
+          },
+        ],
+        notes: 'Air vs air. Positive trade. Fast elimination.',
+      },
+      {
+        card: 'Bats',
+        cost: 2,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 17 },
+            card: 'Bats',
+            description: 'Swarm with Bats',
+          },
+        ],
+        notes: 'Positive trade if unzapped. Watch for chain lightning.',
+      },
+    ],
+  },
+  'flying-machine': {
+    targetCard: 'Flying Machine',
+    counterCards: [
+      {
+        card: 'Musketeer',
+        cost: 4,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 15 },
+            card: 'Musketeer',
+            description: 'Place Musketeer to counter Flying Machine',
+          },
+        ],
+        notes: 'Air counter. Even trade. Good range.',
+      },
+      {
+        card: 'Mega Minion',
+        cost: 3,
+        effectiveness: 'excellent',
+        placement: [
+          {
+            position: { x: 9, y: 16 },
+            card: 'Mega Minion',
+            description: 'Counter with Mega Minion',
+          },
+        ],
+        notes: 'Air vs air. Positive trade.',
+      },
+      {
+        card: 'Arrows',
+        cost: 3,
+        effectiveness: 'good',
+        placement: [
+          {
+            position: { x: 9, y: 20 },
+            card: 'Arrows',
+            description: 'Cast Arrows on Flying Machine',
+          },
+        ],
+        notes: 'One-shot kill. Positive trade.',
+      },
+    ],
+  },
 };
 
 export function getCounterStrategy(cardName: string): CounterStrategy | null {
