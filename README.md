@@ -153,6 +153,7 @@ For more details, see the [RoyaleAPI Proxy Documentation](https://docs.royaleapi
 | `DATABASE_URL` | Database connection string | Yes |
 | `CLASH_ROYALE_API_TOKEN` | Your CR API token (whitelist 45.79.218.79) | For replay analyzer |
 | `OPENAI_API_KEY` | OpenAI API key for RAG | For AI features |
+| `GOOGLE_GEMINI_API_KEY` | Gemini API key for Deck Doctor AI | For AI features |
 
 ## License
 

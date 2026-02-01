@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { analyzeDeck } from '@/lib/deckDoctor/rubric';
+import { analyzeDeckWithLLM, LLMDeckAnalysis } from '@/lib/deckDoctor/llmAnalysis';
+import { getCardInfo } from '@/lib/deckDoctor/cardDatabase';
 
 export async function POST(request: Request) {
   try {
@@ -19,18 +20,30 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Validate all cards exist
+    const unknownCards = cards.filter((name: string) => !getCardInfo(name));
+    if (unknownCards.length > 0) {
+      return NextResponse.json(
+        { success: false, error: `Unknown cards: ${unknownCards.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Check for Gemini API key
+    if (!process.env.GOOGLE_GEMINI_API_KEY) {
+      return NextResponse.json(
+        { success: false, error: 'Deck analysis is not configured. Please set GOOGLE_GEMINI_API_KEY.' },
+        { status: 500 }
+      );
+    }
     
-    // Run deck analysis
-    const analysis = analyzeDeck(cards);
-    
-    // TODO: Add expert advice from InstantDB knowledge base
-    // For now, return empty expert advice
-    const expertAdvice: any[] = [];
+    // Run LLM-powered deck analysis
+    const analysis = await analyzeDeckWithLLM(cards);
     
     return NextResponse.json({
       success: true,
       analysis,
-      expertAdvice,
     });
   } catch (error) {
     console.error('Deck analysis error:', error);

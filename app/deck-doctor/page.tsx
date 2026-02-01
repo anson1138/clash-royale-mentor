@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { DeckAnalysis } from '@/lib/deckDoctor/rubric';
 
 type CardOption = {
   key: string;
@@ -12,13 +11,31 @@ type CardOption = {
   elixir: number;
 };
 
+type SwapRecommendation = {
+  remove: string;
+  add: string;
+  reason: string;
+};
+
+type DeckAnalysis = {
+  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  score: number;
+  avgElixir: number;
+  archetype: string;
+  archetypeDescription: string;
+  strengths: string[];
+  weaknesses: string[];
+  swapRecommendations: SwapRecommendation[];
+  playstyleTips: string[];
+  matchupNotes: string;
+};
+
 export default function DeckDoctor() {
   const searchParams = useSearchParams();
   const [cards, setCards] = useState<string[]>(Array(8).fill(''));
   const [cardOptions, setCardOptions] = useState<CardOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<DeckAnalysis | null>(null);
-  const [expertAdvice, setExpertAdvice] = useState<any[]>([]);
   const [error, setError] = useState('');
 
   // Load cards from URL parameters
@@ -81,7 +98,6 @@ export default function DeckDoctor() {
     setLoading(true);
     setError('');
     setAnalysis(null);
-    setExpertAdvice([]);
 
     try {
       const response = await fetch('/api/deck-doctor/analyze', {
@@ -94,7 +110,6 @@ export default function DeckDoctor() {
 
       if (data.success) {
         setAnalysis(data.analysis);
-        setExpertAdvice(data.expertAdvice || []);
       } else {
         setError(data.error || 'Analysis failed');
       }
@@ -115,6 +130,18 @@ export default function DeckDoctor() {
       F: 'text-red-700',
     };
     return colors[grade] || 'text-gray-500';
+  };
+
+  const getGradeBg = (grade: string) => {
+    const colors: Record<string, string> = {
+      S: 'bg-yellow-500/10 border-yellow-500/30',
+      A: 'bg-green-500/10 border-green-500/30',
+      B: 'bg-blue-500/10 border-blue-500/30',
+      C: 'bg-orange-500/10 border-orange-500/30',
+      D: 'bg-red-500/10 border-red-500/30',
+      F: 'bg-red-700/10 border-red-700/30',
+    };
+    return colors[grade] || 'bg-gray-500/10 border-gray-500/30';
   };
 
   const filledCardCount = cards.filter(c => c.trim()).length;
@@ -160,7 +187,7 @@ export default function DeckDoctor() {
                 />
                 {card.trim() && cardOptions.length > 0 && !cardNameSet.has(card.trim().toLowerCase()) && (
                   <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                    ⚠️ Pick from dropdown to avoid typos
+                    Pick from dropdown to avoid typos
                   </div>
                 )}
               </div>
@@ -174,7 +201,7 @@ export default function DeckDoctor() {
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg transition-colors"
               aria-label="Analyze deck"
             >
-              {loading ? 'Analyzing...' : 'Analyze Deck'}
+              {loading ? 'Analyzing with AI...' : 'Analyze Deck'}
             </button>
             {filledCardCount < 8 && (
               <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -185,248 +212,127 @@ export default function DeckDoctor() {
 
           {error && (
             <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg" role="alert">
-              ❌ {error}
+              {error}
             </div>
           )}
         </div>
 
         {analysis && (
           <>
-            {/* Grade Display */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-              <div className="text-center">
-                <div className={`text-8xl font-bold mb-4 ${getGradeColor(analysis.grade)}`} aria-label={`Grade ${analysis.grade}`}>
-                  {analysis.grade}
+            {/* Grade and Archetype Display */}
+            <div className={`rounded-lg shadow-lg p-8 mb-6 border-2 ${getGradeBg(analysis.grade)}`}>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="text-center md:text-left">
+                  <div className={`text-8xl font-bold mb-2 ${getGradeColor(analysis.grade)}`} aria-label={`Grade ${analysis.grade}`}>
+                    {analysis.grade}
+                  </div>
+                  <div className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+                    Score: {analysis.score}/100
+                  </div>
+                  <div className="text-lg text-gray-600 dark:text-gray-400">
+                    Average Elixir: {analysis.avgElixir}
+                  </div>
                 </div>
-                <div className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Score: {analysis.score}/100
-                </div>
-                <div className="text-lg text-gray-600 dark:text-gray-400">
-                  Average Elixir: {analysis.avgElixir}
+                <div className="flex-1 md:max-w-md">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {analysis.archetype}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {analysis.archetypeDescription}
+                  </p>
                 </div>
               </div>
-            </div>
-
-            {/* Grade Explanation */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-              <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                What Does Your Grade Mean?
-              </h3>
-              
-              {analysis.grade === 'S' && (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className="text-3xl font-bold text-yellow-500">S</span>
-                    <div>
-                      <h4 className="text-xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
-                        Meta / Broken (55%+ Win Rate)
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 mb-3">
-                        <strong>&quot;If you want to win easily, play this.&quot;</strong>
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">
-                        The absolute best. This deck defines the current season and has favorable matchups against almost everything else.
-                      </p>
-                      <div className="mt-3">
-                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">Highest chance of winning; frequent &quot;free wins&quot; due to raw power.</p>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">Highly likely to be nerfed in the next update; everyone is trying to counter you.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {analysis.grade === 'A' && (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className="text-3xl font-bold text-green-500">A</span>
-                    <div>
-                      <h4 className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">
-                        Elite / Strong (50% - 55% Win Rate)
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 mb-3">
-                        <strong>&quot;The Safe Bet.&quot;</strong>
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">
-                        Consistent, reliable, and tournament-ready. Strong, balanced, and capable of reaching the highest ranks (Ultimate Champion).
-                      </p>
-                      <div className="mt-3">
-                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">Very stable; safe to upgrade (unlikely to be nerfed heavily); works in almost all arenas.</p>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">You won&apos;t get &quot;carry&quot; wins—you still need to play well to beat S-Tier decks.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {analysis.grade === 'B' && (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className="text-3xl font-bold text-blue-500">B</span>
-                    <div>
-                      <h4 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                        Viable / Niche (48% - 50% Win Rate)
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 mb-3">
-                        <strong>&quot;Skill Required.&quot;</strong>
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">
-                        Good, but requires high skill or mastery (One-Trick). These decks are decent but have clear weaknesses or &quot;hard counters&quot; in the current meta.
-                      </p>
-                      <div className="mt-3">
-                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">Opponents might not expect them; very rewarding for players who master a single deck.</p>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">You will lose automatically against certain decks (e.g., playing X-Bow when everyone has Earthquake).</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {analysis.grade === 'C' && (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className="text-3xl font-bold text-orange-500">C</span>
-                    <div>
-                      <h4 className="text-xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                        Off-Meta (&lt; 48% Win Rate)
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 mb-3">
-                        <strong>&quot;Uphill Battle.&quot;</strong>
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">
-                        Struggles against top decks; situational. These decks are technically functional but statistically weak and rely on the opponent making huge mistakes.
-                      </p>
-                      <div className="mt-3">
-                        <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">Fun for casual play; unique playstyles.</p>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
-                        <p className="text-gray-600 dark:text-gray-400 ml-4">You will hit a &quot;trophy wall&quot; where you simply cannot climb higher.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {(analysis.grade === 'D' || analysis.grade === 'F') && (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className={`text-3xl font-bold ${analysis.grade === 'F' ? 'text-red-700' : 'text-red-500'}`}>
-                      {analysis.grade}
-                    </span>
-                    <div>
-                      <h4 className={`text-xl font-bold mb-2 ${analysis.grade === 'F' ? 'text-red-700 dark:text-red-500' : 'text-red-600 dark:text-red-400'}`}>
-                        {analysis.grade === 'F' ? 'Trash / Meme (< 40% Win Rate)' : 'Off-Meta (< 48% Win Rate)'}
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 mb-3">
-                        <strong>&quot;{analysis.grade === 'F' ? 'Mathematical Failure' : 'Uphill Battle'}.&quot;</strong>
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">
-                        {analysis.grade === 'F' 
-                          ? 'Fundamentally flawed. Do not use. These decks violate core principles of the game (e.g., no win condition, 5.0+ average elixir, all spells).'
-                          : 'These decks struggle significantly and require major improvements to be competitive.'
-                        }
-                      </p>
-                      {analysis.grade === 'F' && (
-                        <>
-                          <div className="mt-3">
-                            <p className="text-green-600 dark:text-green-400 font-semibold">✅ Pros:</p>
-                            <p className="text-gray-600 dark:text-gray-400 ml-4">None.</p>
-                          </div>
-                          <div className="mt-2">
-                            <p className="text-red-600 dark:text-red-400 font-semibold">⚠️ Cons:</p>
-                            <p className="text-gray-600 dark:text-gray-400 ml-4">You will lose to any competent player. Please review the recommendations below.</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Strengths */}
             {analysis.strengths.length > 0 && (
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg shadow-lg p-8 mb-6">
                 <h3 className="text-2xl font-bold mb-4 text-green-800 dark:text-green-300">
-                  ✅ Strengths
+                  Strengths
                 </h3>
                 <ul className="space-y-2" role="list">
                   {analysis.strengths.map((strength, idx) => (
-                    <li key={idx} className="text-green-700 dark:text-green-400">
-                      • {strength}
+                    <li key={idx} className="text-green-700 dark:text-green-400 flex items-start gap-2">
+                      <span className="text-green-500 mt-1">+</span>
+                      <span>{strength}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {/* Issues */}
-            {analysis.issues.length > 0 && (
+            {/* Weaknesses */}
+            {analysis.weaknesses.length > 0 && (
               <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow-lg p-8 mb-6">
                 <h3 className="text-2xl font-bold mb-4 text-red-800 dark:text-red-300">
-                  ⚠️ Issues Found
+                  Weaknesses
                 </h3>
                 <ul className="space-y-2" role="list">
-                  {analysis.issues.map((issue, idx) => (
-                    <li key={idx} className="text-red-700 dark:text-red-400">
-                      • {issue}
+                  {analysis.weaknesses.map((weakness, idx) => (
+                    <li key={idx} className="text-red-700 dark:text-red-400 flex items-start gap-2">
+                      <span className="text-red-500 mt-1">-</span>
+                      <span>{weakness}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {/* Recommendations */}
-            {analysis.recommendations.length > 0 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-blue-800 dark:text-blue-300">
-                  💡 Recommendations
-                </h3>
-                <ul className="space-y-2" role="list">
-                  {analysis.recommendations.map((rec, idx) => (
-                    <li key={idx} className="text-blue-700 dark:text-blue-400">
-                      • {rec}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Expert Advice */}
-            {expertAdvice.length > 0 && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow-lg p-8">
+            {/* Swap Recommendations */}
+            {analysis.swapRecommendations.length > 0 && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow-lg p-8 mb-6">
                 <h3 className="text-2xl font-bold mb-4 text-purple-800 dark:text-purple-300">
-                  🎓 Expert Advice
+                  Suggested Card Swaps
                 </h3>
                 <div className="space-y-4">
-                  {expertAdvice.map((advice, idx) => (
-                    <div key={idx} className="border-l-4 border-purple-500 pl-4">
-                      <div className="font-semibold text-purple-900 dark:text-purple-300 mb-2">
-                        {advice.issue}
+                  {analysis.swapRecommendations.map((swap, idx) => (
+                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="px-3 py-1 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-full text-sm font-medium">
+                          {swap.remove}
+                        </span>
+                        <span className="text-gray-400 dark:text-gray-500 text-xl">→</span>
+                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-sm font-medium">
+                          {swap.add}
+                        </span>
                       </div>
-                      <div className="text-purple-700 dark:text-purple-400 mb-2">
-                        {advice.advice}
-                      </div>
-                      <div className="text-sm text-purple-600 dark:text-purple-500">
-                        Source: {advice.source}
-                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {swap.reason}
+                      </p>
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Playstyle Tips */}
+            {analysis.playstyleTips.length > 0 && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-lg p-8 mb-6">
+                <h3 className="text-2xl font-bold mb-4 text-blue-800 dark:text-blue-300">
+                  How to Play This Deck
+                </h3>
+                <ul className="space-y-3" role="list">
+                  {analysis.playstyleTips.map((tip, idx) => (
+                    <li key={idx} className="text-blue-700 dark:text-blue-400 flex items-start gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300 flex items-center justify-center text-sm font-bold">
+                        {idx + 1}
+                      </span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Matchup Notes */}
+            {analysis.matchupNotes && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg shadow-lg p-8 mb-6">
+                <h3 className="text-2xl font-bold mb-4 text-amber-800 dark:text-amber-300">
+                  Matchup Analysis
+                </h3>
+                <p className="text-amber-700 dark:text-amber-400">
+                  {analysis.matchupNotes}
+                </p>
               </div>
             )}
           </>

@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@instantdb/admin": "^0.22.101",
     "@instantdb/react": "^0.22.101",
     "@libsql/client": "^0.17.0",
