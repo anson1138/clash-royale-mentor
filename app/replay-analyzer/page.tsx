@@ -3,6 +3,22 @@
 import { useState } from 'react';
 import { BattlePattern } from '@/lib/clashApi/patternMiner';
 
+interface BattleAnalysis {
+  summary: string;
+  outcome: 'win' | 'loss' | 'draw';
+  keyFactors: string[];
+  whatWentWell: string[];
+  whatCouldImprove: string[];
+  matchupAnalysis: {
+    playerDeckType: string;
+    opponentDeckType: string;
+    matchupFavorability: 'favorable' | 'even' | 'unfavorable';
+    explanation: string;
+  };
+  tacticalTips: string[];
+  deckDoctorRecommendation: string;
+}
+
 export default function ReplayAnalyzer() {
   const [playerTag, setPlayerTag] = useState('#VY9Q20PR9');
   const [loading, setLoading] = useState(false);
@@ -357,6 +373,10 @@ interface BattleDetailModalProps {
 }
 
 function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProps) {
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<BattleAnalysis | null>(null);
+  const [analysisError, setAnalysisError] = useState('');
+
   const playerTeam = battle.team?.[0] || {};
   const opponent = battle.opponent?.[0] || {};
   const playerCrowns = playerTeam.crowns || 0;
@@ -367,6 +387,39 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
   
   const battleDate = battle.battleTime ? parseCRDate(battle.battleTime) : null;
   const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
+
+  const handleAnalyze = async () => {
+    setAnalyzing(true);
+    setAnalysisError('');
+    
+    try {
+      const response = await fetch('/api/replay-analyzer/analyze-battle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ battle, playerTag }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAnalysis(data.analysis);
+      } else {
+        setAnalysisError(data.error || 'Analysis failed');
+      }
+    } catch (err) {
+      setAnalysisError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const getFavorabilityColor = (favorability: string) => {
+    switch (favorability) {
+      case 'favorable': return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30';
+      case 'unfavorable': return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30';
+      default: return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30';
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -610,17 +663,188 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
             </div>
           </div>
 
+          {/* AI Analysis Section */}
+          {!analysis && (
+            <div className="mt-6 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-1">
+                    AI Battle Analysis
+                  </h4>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-400">
+                    Get AI-powered insights on why you {result.toLowerCase() === 'win' ? 'won' : result.toLowerCase() === 'loss' ? 'lost' : 'drew'} and how to improve
+                  </p>
+                </div>
+                <button
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-lg transition-colors flex items-center gap-2"
+                >
+                  {analyzing ? (
+                    <>
+                      <span className="animate-spin">⚡</span>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <span>🤖</span>
+                      Analyze with AI
+                    </>
+                  )}
+                </button>
+              </div>
+              {analysisError && (
+                <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm">
+                  {analysisError}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Analysis Results */}
+          {analysis && (
+            <div className="mt-6 space-y-6">
+              {/* Summary */}
+              <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                <h4 className="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-3 flex items-center gap-2">
+                  <span>🤖</span> AI Battle Analysis
+                </h4>
+                <p className="text-indigo-800 dark:text-indigo-200 leading-relaxed">
+                  {analysis.summary}
+                </p>
+              </div>
+
+              {/* Matchup Analysis */}
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                  Matchup Analysis
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-xs text-blue-600 dark:text-blue-400 uppercase font-semibold mb-1">Your Deck</div>
+                    <div className="font-bold text-blue-900 dark:text-blue-200">{analysis.matchupAnalysis.playerDeckType}</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                    <span className="text-2xl">⚔️</span>
+                  </div>
+                  <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                    <div className="text-xs text-red-600 dark:text-red-400 uppercase font-semibold mb-1">Opponent Deck</div>
+                    <div className="font-bold text-red-900 dark:text-red-200">{analysis.matchupAnalysis.opponentDeckType}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Matchup:</span>
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${getFavorabilityColor(analysis.matchupAnalysis.matchupFavorability)}`}>
+                    {analysis.matchupAnalysis.matchupFavorability}
+                  </span>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 text-sm">
+                  {analysis.matchupAnalysis.explanation}
+                </p>
+              </div>
+
+              {/* Key Factors */}
+              {analysis.keyFactors.length > 0 && (
+                <div className="p-6 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <h4 className="text-lg font-bold text-amber-900 dark:text-amber-300 mb-3">
+                    Key Factors
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.keyFactors.map((factor, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-amber-800 dark:text-amber-200">
+                        <span className="text-amber-500 mt-1">•</span>
+                        <span>{factor}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* What Went Well */}
+              {analysis.whatWentWell.length > 0 && (
+                <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <h4 className="text-lg font-bold text-green-900 dark:text-green-300 mb-3">
+                    What Went Well
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.whatWentWell.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-green-800 dark:text-green-200">
+                        <span className="text-green-500 mt-1">+</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* What Could Improve */}
+              {analysis.whatCouldImprove.length > 0 && (
+                <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <h4 className="text-lg font-bold text-red-900 dark:text-red-300 mb-3">
+                    Areas for Improvement
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.whatCouldImprove.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-red-800 dark:text-red-200">
+                        <span className="text-red-500 mt-1">→</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Tactical Tips */}
+              {analysis.tacticalTips.length > 0 && (
+                <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h4 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-3">
+                    Tactical Tips
+                  </h4>
+                  <ul className="space-y-3">
+                    {analysis.tacticalTips.map((tip, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-blue-800 dark:text-blue-200">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300 flex items-center justify-center text-sm font-bold">
+                          {idx + 1}
+                        </span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Deck Doctor Recommendation */}
+              <div className="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                <h4 className="text-lg font-bold text-purple-900 dark:text-purple-300 mb-3">
+                  Deck Doctor Recommendation
+                </h4>
+                <p className="text-purple-800 dark:text-purple-200 mb-4">
+                  {analysis.deckDoctorRecommendation}
+                </p>
+                <a
+                  href={`/deck-doctor?cards=${encodeURIComponent(playerTeam.cards?.map((c: any) => c.name).join(',') || '')}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  <span>🔬</span>
+                  Open Deck Doctor
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="mt-6 flex justify-end gap-3">
-            <a
-              href={`/deck-doctor?cards=${encodeURIComponent(playerTeam.cards?.map((c: any) => c.name).join(',') || '')}`}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
-            >
-              🔍 Analyze Your Deck
-            </a>
+            {!analysis && (
+              <a
+                href={`/deck-doctor?cards=${encodeURIComponent(playerTeam.cards?.map((c: any) => c.name).join(',') || '')}`}
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                Analyze Your Deck
+              </a>
+            )}
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
             >
               Close
             </button>
