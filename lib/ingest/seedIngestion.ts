@@ -1,9 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
-import prisma from '@/lib/prisma';
+import { adminDb, isAdminConfigured, Source, SourceChunk, Tutorial } from '@/lib/instantdb-admin';
 import { generateEmbedding } from './embeddings';
+import { id as createId } from '@instantdb/admin';
 
-interface Tutorial {
+interface TutorialData {
   title: string;
   content: string;
   category: string;
@@ -12,9 +13,9 @@ interface Tutorial {
 /**
  * Parse the deck-doctor-tutorials.md file into structured tutorials
  */
-export async function parseSeedMarkdown(filePath: string): Promise<Tutorial[]> {
+export async function parseSeedMarkdown(filePath: string): Promise<TutorialData[]> {
   const content = await fs.readFile(filePath, 'utf-8');
-  const tutorials: Tutorial[] = [];
+  const tutorials: TutorialData[] = [];
   
   // Split by numbered sections (e.g., "1. ", "2. ", etc.)
   const sections = content.split(/(?=^\d+\.\s)/m);
@@ -76,9 +77,13 @@ export function chunkText(text: string, maxChunkSize: number = 500): string[] {
 }
 
 /**
- * Ingest the seed markdown file into the database
+ * Ingest the seed markdown file into InstantDB
  */
 export async function ingestSeedMarkdown() {
+  if (!isAdminConfigured()) {
+    throw new Error('InstantDB admin token not configured');
+  }
+
   const seedPath = path.join(process.cwd(), 'deck-doctor-tutorials.md');
   
   console.log('📚 Parsing seed markdown file...');
@@ -87,26 +92,52 @@ export async function ingestSeedMarkdown() {
   console.log(`Found ${tutorials.length} tutorials`);
   
   // Check if seed source already exists
-  let source = await prisma.source.findFirst({
-    where: { type: 'seed_markdown', title: 'Deck Doctor Seed Tutorials' },
+  const result = await adminDb.query({
+    sources: {
+      $: {
+        where: {
+          type: 'seed_markdown',
+          title: 'Deck Doctor Seed Tutorials',
+        },
+      },
+    },
   });
+
+  let sourceId: string;
+  const existingSources = (result?.sources || []) as Source[];
   
-  if (source) {
+  if (existingSources.length > 0) {
     console.log('⚠️  Seed source already exists. Deleting old chunks...');
-    await prisma.sourceChunk.deleteMany({
-      where: { sourceId: source.id },
+    sourceId = existingSources[0].id;
+    
+    // Delete old chunks for this source
+    const chunkResult = await adminDb.query({
+      sourceChunks: {
+        $: {
+          where: { sourceId },
+        },
+      },
     });
+    
+    const oldChunks = (chunkResult?.sourceChunks || []) as SourceChunk[];
+    if (oldChunks.length > 0) {
+      await adminDb.transact(
+        oldChunks.map(chunk => adminDb.tx.sourceChunks[chunk.id].delete())
+      );
+    }
   } else {
     console.log('Creating new seed source...');
-    source = await prisma.source.create({
-      data: {
+    sourceId = createId();
+    await adminDb.transact(
+      adminDb.tx.sources[sourceId].update({
         type: 'seed_markdown',
         title: 'Deck Doctor Seed Tutorials',
         author: 'Internal',
         tags: JSON.stringify(['deck-building', 'strategy', 'fundamentals']),
         status: 'processing',
-      },
-    });
+        createdAt: Date.now(),
+      })
+    );
   }
   
   // Process each tutorial
@@ -115,22 +146,30 @@ export async function ingestSeedMarkdown() {
     const tutorial = tutorials[i];
     console.log(`Processing: ${tutorial.title}`);
     
-    // Create tutorial record
-    const existingTutorial = await prisma.tutorial.findFirst({
-      where: { title: tutorial.title },
+    // Check if tutorial already exists
+    const tutorialResult = await adminDb.query({
+      tutorials: {
+        $: {
+          where: { title: tutorial.title },
+        },
+      },
     });
     
-    if (!existingTutorial) {
-      await prisma.tutorial.create({
-        data: {
+    const existingTutorials = (tutorialResult?.tutorials || []) as Tutorial[];
+    
+    if (existingTutorials.length === 0) {
+      const tutorialId = createId();
+      await adminDb.transact(
+        adminDb.tx.tutorials[tutorialId].update({
           title: tutorial.title,
           category: tutorial.category,
           content: tutorial.content,
           difficulty: tutorial.category === 'advanced' ? 'advanced' : 'intermediate',
           order: i + 1,
-          sourceId: source.id,
-        },
-      });
+          sourceId,
+          createdAt: Date.now(),
+        })
+      );
     }
     
     // Chunk the content
@@ -145,10 +184,11 @@ export async function ingestSeedMarkdown() {
       
       try {
         const embedding = await generateEmbedding(chunk);
+        const chunkId = createId();
         
-        await prisma.sourceChunk.create({
-          data: {
-            sourceId: source.id,
+        await adminDb.transact(
+          adminDb.tx.sourceChunks[chunkId].update({
+            sourceId,
             content: chunk,
             embedding: JSON.stringify(embedding),
             chunkIndex: totalChunks + chunkIdx,
@@ -157,8 +197,9 @@ export async function ingestSeedMarkdown() {
               category: tutorial.category,
               chunkWithinTutorial: chunkIdx,
             }),
-          },
-        });
+            createdAt: Date.now(),
+          })
+        );
       } catch (error) {
         console.error(`  ✗ Error embedding chunk ${chunkIdx}:`, error);
       }
@@ -168,10 +209,11 @@ export async function ingestSeedMarkdown() {
   }
   
   // Update source status
-  await prisma.source.update({
-    where: { id: source.id },
-    data: { status: 'completed' },
-  });
+  await adminDb.transact(
+    adminDb.tx.sources[sourceId].update({
+      status: 'completed',
+    })
+  );
   
   console.log(`✅ Ingestion complete! Created ${totalChunks} chunks from ${tutorials.length} tutorials`);
   

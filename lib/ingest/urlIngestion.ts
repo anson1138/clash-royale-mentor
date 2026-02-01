@@ -1,8 +1,9 @@
 import { YoutubeTranscript } from 'youtube-transcript';
 import * as cheerio from 'cheerio';
-import prisma from '@/lib/prisma';
+import { adminDb, isAdminConfigured, Source } from '@/lib/instantdb-admin';
 import { generateEmbedding } from './embeddings';
 import { chunkText } from './seedIngestion';
+import { id as createId } from '@instantdb/admin';
 
 interface UrlContent {
   title: string;
@@ -118,28 +119,39 @@ async function fetchUrlContent(url: string): Promise<UrlContent> {
 }
 
 /**
- * Ingest a URL source into the database
+ * Ingest a URL source into InstantDB
  */
 export async function ingestUrl(url: string, tags: string[] = []): Promise<string> {
+  if (!isAdminConfigured()) {
+    throw new Error('InstantDB admin token not configured');
+  }
+
   // Check if URL already exists
-  const existing = await prisma.source.findFirst({
-    where: { url },
+  const result = await adminDb.query({
+    sources: {
+      $: {
+        where: { url },
+      },
+    },
   });
-  
-  if (existing) {
+
+  const existingSources = (result?.sources || []) as Source[];
+  if (existingSources.length > 0) {
     throw new Error('This URL has already been ingested');
   }
   
   // Create source record
-  const source = await prisma.source.create({
-    data: {
+  const sourceId = createId();
+  await adminDb.transact(
+    adminDb.tx.sources[sourceId].update({
       type: url.includes('youtube') ? 'youtube' : 'article',
       url,
       title: 'Processing...',
       tags: JSON.stringify(tags),
       status: 'processing',
-    },
-  });
+      createdAt: Date.now(),
+    })
+  );
   
   try {
     // Fetch content
@@ -147,14 +159,13 @@ export async function ingestUrl(url: string, tags: string[] = []): Promise<strin
     const urlContent = await fetchUrlContent(url);
     
     // Update source with title and author
-    await prisma.source.update({
-      where: { id: source.id },
-      data: {
+    await adminDb.transact(
+      adminDb.tx.sources[sourceId].update({
         title: urlContent.title,
         author: urlContent.author,
         metadata: JSON.stringify(urlContent.metadata),
-      },
-    });
+      })
+    );
     
     // Chunk the content
     const chunks = chunkText(urlContent.content);
@@ -166,10 +177,11 @@ export async function ingestUrl(url: string, tags: string[] = []): Promise<strin
       
       try {
         const embedding = await generateEmbedding(chunk);
+        const chunkId = createId();
         
-        await prisma.sourceChunk.create({
-          data: {
-            sourceId: source.id,
+        await adminDb.transact(
+          adminDb.tx.sourceChunks[chunkId].update({
+            sourceId,
             content: chunk,
             embedding: JSON.stringify(embedding),
             chunkIndex: i,
@@ -177,33 +189,34 @@ export async function ingestUrl(url: string, tags: string[] = []): Promise<strin
               ...urlContent.metadata,
               chunkIndex: i,
             }),
-          },
-        });
+            createdAt: Date.now(),
+          })
+        );
       } catch (error) {
         console.error(`Error embedding chunk ${i}:`, error);
       }
     }
     
     // Update source status
-    await prisma.source.update({
-      where: { id: source.id },
-      data: { status: 'completed' },
-    });
+    await adminDb.transact(
+      adminDb.tx.sources[sourceId].update({
+        status: 'completed',
+      })
+    );
     
     console.log(`✅ Successfully ingested ${url}`);
-    return source.id;
+    return sourceId;
     
   } catch (error) {
     // Update source status to failed
-    await prisma.source.update({
-      where: { id: source.id },
-      data: { 
+    await adminDb.transact(
+      adminDb.tx.sources[sourceId].update({
         status: 'failed',
         metadata: JSON.stringify({ 
           error: error instanceof Error ? error.message : 'Unknown error' 
         }),
-      },
-    });
+      })
+    );
     
     throw error;
   }

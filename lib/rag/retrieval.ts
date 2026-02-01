@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { adminDb, isAdminConfigured, Source, SourceChunk } from '@/lib/instantdb-admin';
 import { generateEmbedding, cosineSimilarity } from '@/lib/ingest/embeddings';
 
 export interface Citation {
@@ -24,25 +24,38 @@ export async function searchKnowledgeBase(
   minSimilarity: number = 0.5
 ): Promise<Citation[]> {
   try {
+    // Check if InstantDB admin is configured
+    if (!isAdminConfigured()) {
+      console.warn('InstantDB admin token not configured, returning empty results');
+      return [];
+    }
+
     // Generate embedding for the query
     const queryEmbedding = await generateEmbedding(query);
     
-    // Fetch all chunks with embeddings
-    const chunks = await prisma.sourceChunk.findMany({
-      include: {
-        source: true,
-      },
-      where: {
-        source: {
-          status: 'completed',
-        },
-      },
+    // Fetch all sources and chunks from InstantDB
+    const result = await adminDb.query({
+      sources: {},
+      sourceChunks: {},
     });
+
+    const sources = (result?.sources || []) as Source[];
+    const chunks = (result?.sourceChunks || []) as SourceChunk[];
+    
+    // Create a map of sources for quick lookup
+    const sourceMap = new Map<string, Source>();
+    for (const source of sources) {
+      if (source.status === 'completed') {
+        sourceMap.set(source.id, source);
+      }
+    }
     
     // Calculate similarity scores
     const scoredChunks = chunks
       .map(chunk => {
-        if (!chunk.embedding) return null;
+        // Only include chunks from completed sources
+        const source = sourceMap.get(chunk.sourceId);
+        if (!source || !chunk.embedding) return null;
         
         try {
           const chunkEmbedding = JSON.parse(chunk.embedding);
@@ -50,6 +63,7 @@ export async function searchKnowledgeBase(
           
           return {
             chunk,
+            source,
             similarity,
           };
         } catch (error) {
@@ -62,11 +76,11 @@ export async function searchKnowledgeBase(
       .slice(0, topK);
     
     // Convert to citations
-    return scoredChunks.map(({ chunk, similarity }) => ({
-      sourceId: chunk.source.id,
-      sourceTitle: chunk.source.title,
-      sourceType: chunk.source.type,
-      sourceUrl: chunk.source.url || undefined,
+    return scoredChunks.map(({ chunk, source, similarity }) => ({
+      sourceId: source.id,
+      sourceTitle: source.title,
+      sourceType: source.type,
+      sourceUrl: source.url || undefined,
       chunkContent: chunk.content,
       relevanceScore: similarity,
     }));
