@@ -107,6 +107,12 @@ function DeckDoctorContent() {
     return new Set(cardOptions.map((c) => c.name.toLowerCase()));
   }, [cardOptions]);
 
+  const cardImageUrl = (name: string): string | null => {
+    const match = cardOptions.find((c) => c.name.toLowerCase() === name.toLowerCase());
+    if (!match) return null;
+    return `https://cdn.royaleapi.com/static/img/cards-150/${match.key}.png`;
+  };
+
   const handleCardChange = (index: number, value: string) => {
     const newCards = [...cards];
     newCards[index] = value;
@@ -334,13 +340,19 @@ function DeckDoctorContent() {
                 {analysis.swapRecommendations.map((swap, idx) => (
                   <div key={idx} className="bg-surface-container-low rounded-lg p-4 border border-outline-variant/10">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="px-3 py-1 bg-red-500/10 text-red-400 rounded-full text-sm font-medium">
-                        {swap.remove}
-                      </span>
+                      <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 rounded-full">
+                        {cardImageUrl(swap.remove) && (
+                          <img src={cardImageUrl(swap.remove)!} alt={swap.remove} className="w-7 h-7 rounded object-cover" />
+                        )}
+                        <span className="text-red-400 text-sm font-medium">{swap.remove}</span>
+                      </div>
                       <span className="text-outline text-xl">&rarr;</span>
-                      <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-sm font-medium">
-                        {swap.add}
-                      </span>
+                      <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full">
+                        {cardImageUrl(swap.add) && (
+                          <img src={cardImageUrl(swap.add)!} alt={swap.add} className="w-7 h-7 rounded object-cover" />
+                        )}
+                        <span className="text-green-400 text-sm font-medium">{swap.add}</span>
+                      </div>
                     </div>
                     <p className="text-on-surface-variant text-sm">
                       {swap.reason}
