@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.royaleapi.com',
+        pathname: '/static/img/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api-assets.clashroyale.com',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

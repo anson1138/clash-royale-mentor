@@ -40,20 +40,19 @@ export default function DeckDoctor() {
 
 function DeckDoctorLoading() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-          Deck Doctor
-        </h1>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Array(8).fill(0).map((_, i) => (
-                <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              ))}
-            </div>
+    <div className="p-12 space-y-8">
+      <div>
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Tactical Analysis</span>
+        <h2 className="text-4xl font-black tracking-tight text-white uppercase italic mt-1">Deck Doctor</h2>
+      </div>
+      <div className="bg-surface-container-low rounded-xl p-8 border border-white/5">
+        <div className="animate-pulse">
+          <div className="h-8 bg-surface-container-high rounded w-1/3 mb-4" />
+          <div className="h-4 bg-surface-container-high rounded w-2/3 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array(8).fill(0).map((_, i) => (
+              <div key={i} className="h-12 bg-surface-container-high rounded-lg" />
+            ))}
           </div>
         </div>
       </div>
@@ -96,7 +95,6 @@ function DeckDoctorContent() {
           setCardOptions(data.cards);
         }
       } catch (err) {
-        // Autocomplete is optional; log but don't block UI
         console.warn('Failed to load card autocomplete:', err);
       }
     })();
@@ -153,43 +151,54 @@ function DeckDoctorContent() {
 
   const getGradeColor = (grade: string) => {
     const colors: Record<string, string> = {
-      S: 'text-yellow-500',
-      A: 'text-green-500',
-      B: 'text-blue-500',
-      C: 'text-orange-500',
-      D: 'text-red-500',
-      F: 'text-red-700',
+      S: 'text-yellow-400',
+      A: 'text-green-400',
+      B: 'text-primary',
+      C: 'text-orange-400',
+      D: 'text-red-400',
+      F: 'text-red-600',
     };
-    return colors[grade] || 'text-gray-500';
+    return colors[grade] || 'text-outline';
   };
 
   const getGradeBg = (grade: string) => {
     const colors: Record<string, string> = {
-      S: 'bg-yellow-500/10 border-yellow-500/30',
-      A: 'bg-green-500/10 border-green-500/30',
-      B: 'bg-blue-500/10 border-blue-500/30',
-      C: 'bg-orange-500/10 border-orange-500/30',
-      D: 'bg-red-500/10 border-red-500/30',
-      F: 'bg-red-700/10 border-red-700/30',
+      S: 'bg-yellow-500/10 border-yellow-500/20',
+      A: 'bg-green-500/10 border-green-500/20',
+      B: 'bg-primary/10 border-primary/20',
+      C: 'bg-orange-500/10 border-orange-500/20',
+      D: 'bg-red-500/10 border-red-500/20',
+      F: 'bg-red-700/10 border-red-700/20',
     };
-    return colors[grade] || 'bg-gray-500/10 border-gray-500/30';
+    return colors[grade] || 'bg-surface-container border-outline-variant';
   };
 
   const filledCardCount = cards.filter(c => c.trim()).length;
   const canAnalyze = filledCardCount === 8 && !loading;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-          Deck Doctor
-        </h1>
+    <div className="p-12 space-y-8">
+      {/* Section Header */}
+      <div>
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Tactical Analysis</span>
+        <h2 className="text-4xl font-black tracking-tight text-white uppercase italic mt-1">Deck Doctor Analysis</h2>
+        <p className="text-on-surface-variant max-w-2xl font-medium tracking-wide mt-2">
+          Advanced heuristic scan. Visualizing tactical synergies and counter-threat vectors for your loadout.
+        </p>
+      </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-            Enter Your 8 Cards
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+      {/* Card Input Section */}
+      <div className="bg-surface-container-low rounded-xl p-8 border border-white/5 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #A9C7FF 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+        <div className="relative z-10">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-xs font-bold tracking-[0.3em] text-primary uppercase">Active Deck Slot</h3>
+            <div className="px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+              <span className="text-[10px] font-bold text-primary">{filledCardCount}/8 CARDS</span>
+            </div>
+          </div>
+
+          <p className="text-on-surface-variant text-sm mb-6">
             Start typing and pick from the autocomplete (e.g., &quot;Hog Rider&quot;, &quot;Zap&quot;, &quot;Wizard&quot;)
           </p>
 
@@ -202,7 +211,7 @@ function DeckDoctorContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {cards.map((card, index) => (
               <div key={index}>
-                <label htmlFor={`card-${index}`} className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label htmlFor={`card-${index}`} className="block text-[10px] font-bold uppercase tracking-widest mb-2 text-on-surface-variant">
                   Card {index + 1}
                 </label>
                 <input
@@ -214,10 +223,10 @@ function DeckDoctorContent() {
                   placeholder={`Card ${index + 1}`}
                   list="cr-card-names"
                   autoComplete="off"
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-surface-container-high border border-outline-variant/30 rounded-lg text-on-surface focus:ring-1 focus:ring-primary/50 focus:border-primary/50 focus:outline-none transition-all placeholder:text-outline"
                 />
                 {card.trim() && cardOptions.length > 0 && !cardNameSet.has(card.trim().toLowerCase()) && (
-                  <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                  <div className="mt-1 text-xs text-secondary-container">
                     Pick from dropdown to avoid typos
                   </div>
                 )}
@@ -229,62 +238,63 @@ function DeckDoctorContent() {
             <button
               onClick={handleAnalyze}
               disabled={!canAnalyze}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg transition-colors"
+              className="px-10 py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               aria-label="Analyze deck"
             >
               {loading ? 'Analyzing with AI...' : 'Analyze Deck'}
             </button>
-            {filledCardCount < 8 && (
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {filledCardCount}/8 cards entered
-              </span>
-            )}
           </div>
 
           {error && (
-            <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg" role="alert">
+            <div className="mt-6 p-4 bg-error/10 border border-error/20 text-error rounded-lg" role="alert">
               {error}
             </div>
           )}
         </div>
+      </div>
 
-        {analysis && (
-          <>
-            {/* Grade and Archetype Display */}
-            <div className={`rounded-lg shadow-lg p-8 mb-6 border-2 ${getGradeBg(analysis.grade)}`}>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="text-center md:text-left">
-                  <div className={`text-8xl font-bold mb-2 ${getGradeColor(analysis.grade)}`} aria-label={`Grade ${analysis.grade}`}>
-                    {analysis.grade}
-                  </div>
-                  <div className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-                    Score: {analysis.score}/100
-                  </div>
-                  <div className="text-lg text-gray-600 dark:text-gray-400">
-                    Average Elixir: {analysis.avgElixir}
-                  </div>
+      {analysis && (
+        <div className="space-y-6">
+          {/* Grade and Archetype Display */}
+          <div className={`rounded-xl p-8 border-2 ${getGradeBg(analysis.grade)}`}>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="text-center md:text-left">
+                <div className={`text-8xl font-black mb-2 ${getGradeColor(analysis.grade)}`} aria-label={`Grade ${analysis.grade}`}>
+                  {analysis.grade}
                 </div>
-                <div className="flex-1 md:max-w-md">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {analysis.archetype}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {analysis.archetypeDescription}
-                  </p>
+                <div className="text-xl font-semibold text-on-surface">
+                  Score: {analysis.score}/100
+                </div>
+                <div className="text-lg text-on-surface-variant">
+                  Average Elixir: {analysis.avgElixir}
                 </div>
               </div>
+              <div className="flex-1 md:max-w-md">
+                <div className="text-2xl font-bold text-white mb-2">
+                  {analysis.archetype}
+                </div>
+                <p className="text-on-surface-variant">
+                  {analysis.archetypeDescription}
+                </p>
+              </div>
             </div>
+          </div>
 
+          {/* AI Insights Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Strengths */}
             {analysis.strengths.length > 0 && (
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-green-800 dark:text-green-300">
-                  Strengths
-                </h3>
+              <div className="glass-panel rounded-xl p-6 border border-green-500/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center border border-green-500/20">
+                    <span className="material-symbols-outlined text-green-400">check_circle</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-tight">Strengths</h3>
+                </div>
                 <ul className="space-y-2" role="list">
                   {analysis.strengths.map((strength, idx) => (
-                    <li key={idx} className="text-green-700 dark:text-green-400 flex items-start gap-2">
-                      <span className="text-green-500 mt-1">+</span>
+                    <li key={idx} className="text-green-400 flex items-start gap-2 text-sm">
+                      <span className="text-green-500 mt-0.5">+</span>
                       <span>{strength}</span>
                     </li>
                   ))}
@@ -294,81 +304,87 @@ function DeckDoctorContent() {
 
             {/* Weaknesses */}
             {analysis.weaknesses.length > 0 && (
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-red-800 dark:text-red-300">
-                  Weaknesses
-                </h3>
+              <div className="glass-panel rounded-xl p-6 border border-red-500/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-error/10 flex items-center justify-center border border-error/20">
+                    <span className="material-symbols-outlined text-error">warning</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-tight">Weaknesses</h3>
+                </div>
                 <ul className="space-y-2" role="list">
                   {analysis.weaknesses.map((weakness, idx) => (
-                    <li key={idx} className="text-red-700 dark:text-red-400 flex items-start gap-2">
-                      <span className="text-red-500 mt-1">-</span>
+                    <li key={idx} className="text-red-400 flex items-start gap-2 text-sm">
+                      <span className="text-red-500 mt-0.5">-</span>
                       <span>{weakness}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
+          </div>
 
-            {/* Swap Recommendations */}
-            {analysis.swapRecommendations.length > 0 && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-purple-800 dark:text-purple-300">
-                  Suggested Card Swaps
-                </h3>
-                <div className="space-y-4">
-                  {analysis.swapRecommendations.map((swap, idx) => (
-                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="px-3 py-1 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-full text-sm font-medium">
-                          {swap.remove}
-                        </span>
-                        <span className="text-gray-400 dark:text-gray-500 text-xl">→</span>
-                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-sm font-medium">
-                          {swap.add}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {swap.reason}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+          {/* Swap Recommendations */}
+          {analysis.swapRecommendations.length > 0 && (
+            <div className="bg-surface-container rounded-xl p-8 border border-white/5">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-tertiary">swap_horiz</span>
+                <h3 className="text-sm font-bold text-white uppercase tracking-tight">Suggested Card Swaps</h3>
               </div>
-            )}
-
-            {/* Playstyle Tips */}
-            {analysis.playstyleTips.length > 0 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-blue-800 dark:text-blue-300">
-                  How to Play This Deck
-                </h3>
-                <ul className="space-y-3" role="list">
-                  {analysis.playstyleTips.map((tip, idx) => (
-                    <li key={idx} className="text-blue-700 dark:text-blue-400 flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300 flex items-center justify-center text-sm font-bold">
-                        {idx + 1}
+              <div className="space-y-4">
+                {analysis.swapRecommendations.map((swap, idx) => (
+                  <div key={idx} className="bg-surface-container-low rounded-lg p-4 border border-outline-variant/10">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="px-3 py-1 bg-red-500/10 text-red-400 rounded-full text-sm font-medium">
+                        {swap.remove}
                       </span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
+                      <span className="text-outline text-xl">&rarr;</span>
+                      <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-sm font-medium">
+                        {swap.add}
+                      </span>
+                    </div>
+                    <p className="text-on-surface-variant text-sm">
+                      {swap.reason}
+                    </p>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Matchup Notes */}
-            {analysis.matchupNotes && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-amber-800 dark:text-amber-300">
-                  Matchup Analysis
-                </h3>
-                <p className="text-amber-700 dark:text-amber-400">
-                  {analysis.matchupNotes}
-                </p>
+          {/* Playstyle Tips */}
+          {analysis.playstyleTips.length > 0 && (
+            <div className="bg-surface-container rounded-xl p-8 border border-primary/10">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-primary">strategy</span>
+                <h3 className="text-sm font-bold text-white uppercase tracking-tight">How to Play This Deck</h3>
               </div>
-            )}
-          </>
-        )}
-      </div>
+              <ul className="space-y-3" role="list">
+                {analysis.playstyleTips.map((tip, idx) => (
+                  <li key={idx} className="text-on-surface-variant flex items-start gap-3 text-sm">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Matchup Notes */}
+          {analysis.matchupNotes && (
+            <div className="bg-surface-container rounded-xl p-8 border border-secondary-container/10">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="material-symbols-outlined text-secondary-container">analytics</span>
+                <h3 className="text-sm font-bold text-white uppercase tracking-tight">Matchup Analysis</h3>
+              </div>
+              <p className="text-on-surface-variant text-sm leading-relaxed">
+                {analysis.matchupNotes}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

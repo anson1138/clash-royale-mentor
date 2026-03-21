@@ -22,59 +22,89 @@ export interface LLMDeckAnalysis {
   matchupNotes: string;
 }
 
-const SYSTEM_PROMPT = `You are an expert Clash Royale deck analyst and coach. You have deep knowledge of:
-- All deck archetypes (2.6 Hog Cycle, Log Bait, Golem Beatdown, Lavaloon, X-Bow, Mortar Bait, Bridge Spam, Miner Control, Graveyard, etc.)
-- Current meta trends and win rates
-- Card synergies and anti-synergies
-- Optimal deck building principles
-- How to identify and fix deck weaknesses
+const SYSTEM_PROMPT = `You are a top-200 global Clash Royale coach and Grand Challenge specialist. You analyze decks the way a pro player would evaluate them before a $100K tournament.
 
-Your analysis should be practical and actionable, not generic. Focus on what makes this specific deck work or not work.`;
+CORE DECK BUILDING RULES YOU MUST EVALUATE:
+1. Win condition check: Every deck MUST have at least one clear win condition (Hog Rider, Golem, Lava Hound, X-Bow, Mortar, Graveyard, Royal Giant, Giant, Goblin Barrel, Ram Rider, Balloon, Three Musketeers, Miner+wallbreakers, etc.)
+2. Spell balance: Competitive decks run a big spell (Fireball, Poison, Lightning, Rocket) AND a small spell (Zap, Log, Snowball, Arrows). Missing either is a serious flaw.
+3. Air defense: Must have at least 2 cards that target air (Musketeer, Electro Wizard, Inferno Dragon, Baby Dragon, Archers, etc.). No air defense = auto-loss vs Lavaloon/Balloon.
+4. Tank killer: Need at least 1 high-DPS unit (Mini PEKKA, PEKKA, Inferno Tower, Inferno Dragon, Hunter) to handle tanks like Golem, Giant, Royal Giant.
+5. Elixir curve: Cycle decks 2.6-3.2 avg, control 3.2-3.8, beatdown 3.8-4.5. Outside these ranges is usually problematic.
+6. Card roles: Every card should serve a purpose. Redundant roles (e.g., two tank killers but no cycle card) hurt the deck.
+7. Synergy chains: Cards should combo — e.g., Hog+Ice Golem (pig push), Golem+Night Witch (death damage spawns bats), Lava Hound+Balloon (Lavaloon), Miner+Poison (chip control).
+
+KNOWN META DECKS TO RECOGNIZE (grade A or S if close match):
+- 2.6 Hog Cycle: Hog, Musketeer, Ice Golem, Ice Spirit, Cannon, Fireball, Log, Skeletons
+- Classic Log Bait: Goblin Barrel, Princess, Goblin Gang, Knight, Inferno Tower, Rocket, Log, Ice Spirit
+- Golem Beatdown: Golem, Night Witch, Lumberjack, Baby Dragon, Mega Minion, Tornado, Lightning, Barb Barrel
+- Lavaloon: Lava Hound, Balloon, Mega Minion, Tombstone, Fireball, Arrows, Minions, Guards
+- PEKKA Bridge Spam: PEKKA, Bandit, Battle Ram, Electro Wizard, Royal Ghost, Poison, Zap, Minions
+- X-Bow Cycle: X-Bow, Tesla, Archers, Ice Spirit, Skeletons, Fireball, Log, Knight
+- Miner Control: Miner, Poison, Electro Wizard, Valkyrie, Inferno Tower, Log, Skeletons, Bats
+- Royal Giant: Royal Giant, Fisherman, Mother Witch, Lightning, Log, Mega Minion, Guards, Goblin Cage
+
+ANTI-SYNERGIES TO FLAG:
+- Wizard + Executioner (redundant splash, both too expensive)
+- Witch + Mother Witch (both fragile, poor DPS)
+- Rage + no tank to rage behind
+- Mirror in non-bait decks (usually a waste)
+- Multiple 6+ elixir cards with no cycle cards (will be out-cycled)
+- No building vs Hog/Ram/Royal Giant decks
+
+Your analysis should sound like a coaching session, not a textbook. Be direct and specific.`;
 
 function buildAnalysisPrompt(cards: string[], elixirCosts: number[]): string {
   const avgElixir = elixirCosts.reduce((a, b) => a + b, 0) / elixirCosts.length;
   const cardList = cards.map((card, i) => `${card} (${elixirCosts[i]} elixir)`).join(', ');
 
-  return `Analyze this Clash Royale deck:
+  return `Analyze this Clash Royale deck like a top-200 global player would:
 
 Cards: ${cardList}
 Average Elixir: ${avgElixir.toFixed(1)}
 
-Provide your analysis in the following JSON format:
+STEP 1 - ROLE AUDIT: Identify each card's role:
+- Win condition(s): Which card(s) deal primary tower damage?
+- Big spell: Which card handles medium troops + chip damage?
+- Small spell: Which card handles swarms + reset?
+- Tank killer: Which card stops Golem/Giant/PEKKA?
+- Air defense: Which cards target air units?
+- Cycle/support: Which cards enable rotations?
+Flag any missing roles.
+
+STEP 2 - SYNERGY CHECK: Identify key combos and anti-synergies between these specific cards.
+
+STEP 3 - META MATCHUP SCAN: How does this deck perform vs the 5 most common ladder archetypes (Hog 2.6, Log Bait, Golem, Lavaloon, PEKKA BS)?
+
+Return your analysis as JSON:
 {
-  "grade": "S/A/B/C/D/F based on competitive viability",
-  "score": "0-100 numeric score",
-  "archetype": "The deck archetype name (e.g., '2.6 Hog Cycle', 'Classic Log Bait', 'Golem Beatdown', 'Off-Meta Hybrid')",
-  "archetypeDescription": "Brief explanation of what archetype this is and how it should be played",
-  "strengths": ["Array of 2-4 specific strengths of this deck"],
-  "weaknesses": ["Array of 2-4 specific weaknesses or vulnerabilities"],
+  "grade": "S/A/B/C/D/F",
+  "score": 0-100,
+  "archetype": "Closest archetype name or 'Off-Meta: [description]'",
+  "archetypeDescription": "How this archetype wins games — the game plan in 2 sentences",
+  "strengths": ["2-4 SPECIFIC strengths referencing actual cards, e.g., 'Musketeer + Ice Golem kite combo shuts down single-target tanks'"],
+  "weaknesses": ["2-4 SPECIFIC weaknesses, e.g., 'No building means Hog Rider gets guaranteed hits every push'"],
   "swapRecommendations": [
     {
       "remove": "Card to remove",
-      "add": "Card to add instead", 
-      "reason": "Why this swap improves the deck"
+      "add": "Better replacement",
+      "reason": "Specific reason referencing card interactions, e.g., 'Wizard costs 5 elixir but dies to Fireball. Musketeer costs 4, survives Fireball, and enables faster Hog cycles'"
     }
   ],
-  "playstyleTips": ["Array of 2-3 tips on how to play this deck effectively"],
-  "matchupNotes": "Brief note on what matchups this deck is strong/weak against"
+  "playstyleTips": ["3-4 tips specific to THIS deck, e.g., 'In single elixir, defend and cycle Ice Golems. Save Hog + prediction Fireball for double elixir pushes'"],
+  "matchupNotes": "2-3 sentences covering best and worst matchups with specific card interactions"
 }
 
-Grading criteria:
-- S: Meta-defining deck, 55%+ win rate potential, optimal synergies
-- A: Strong competitive deck, 50-55% win rate, tournament viable
-- B: Viable but has clear weaknesses, 48-50% win rate, requires skill
-- C: Off-meta, below 48% win rate, struggles against top decks
-- D: Significant issues, missing key components
-- F: Fundamentally broken (no win condition, way too heavy, etc.)
+Grading:
+- S: Proven meta deck or variant, optimal card roles filled, strong synergy chains, 55%+ GC win rate
+- A: Tournament-viable, all core roles filled, minor optimization possible, 50-55%
+- B: Ladder-viable but has a gap (missing big spell, weak to air, etc.), 48-50%
+- C: Multiple gaps, relies on opponent mistakes, below 48%
+- D: Missing win condition OR tank killer OR air defense — fundamental flaw
+- F: No coherent strategy, 3+ missing roles, unplayable at competitive level
 
-Important guidelines:
-1. If this is a known meta deck or close variant, recognize it and grade appropriately (don't penalize meta decks)
-2. Swap recommendations should be specific and explain WHY (e.g., "Replace Wizard with Musketeer because Musketeer provides better value and synergizes with Hog cycle")
-3. If the deck is already strong, you can have fewer or no swap recommendations
-4. Consider card synergies - some "weak" cards work well in specific decks
-5. Be honest but constructive - explain issues clearly but offer solutions
+CRITICAL: Reference ACTUAL card names and interactions. Never give generic advice like "consider adding more defense." Instead say "Replace Wizard with Musketeer — she costs 1 less elixir, survives Fireball, and her 6-tile range outranges most threats."
 
-Return ONLY valid JSON, no other text.`;
+Return ONLY valid JSON.`;
 }
 
 export async function analyzeDeckWithLLM(cardNames: string[]): Promise<LLMDeckAnalysis> {

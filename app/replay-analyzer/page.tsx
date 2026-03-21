@@ -68,301 +68,290 @@ export default function ReplayAnalyzer() {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'bg-red-100 dark:bg-red-900/20 border-red-500 text-red-800 dark:text-red-300';
-      case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/20 border-yellow-500 text-yellow-800 dark:text-yellow-300';
-      case 'low': return 'bg-blue-100 dark:bg-blue-900/20 border-blue-500 text-blue-800 dark:text-blue-300';
-      default: return 'bg-gray-100 dark:bg-gray-900/20 border-gray-500 text-gray-800 dark:text-gray-300';
+      case 'high': return 'bg-error/10 border-l-4 border-error text-error';
+      case 'medium': return 'bg-yellow-500/10 border-l-4 border-yellow-500 text-yellow-400';
+      case 'low': return 'bg-primary/10 border-l-4 border-primary text-primary';
+      default: return 'bg-surface-container border-l-4 border-outline text-on-surface-variant';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-          Replay Analyzer
-        </h1>
+    <div className="p-12 space-y-8">
+      {/* Section Header */}
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Mission Log</span>
+          <h2 className="text-4xl font-black tracking-tight text-white uppercase italic mt-1">Tactical Replays</h2>
+        </div>
+      </div>
 
-        {disabled && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-6 mb-6">
-            <div className="flex items-start">
-              <div className="text-yellow-700 dark:text-yellow-300">
-                <div className="font-bold text-lg mb-2">⚠️ Production Mode Notice</div>
-                <p className="mb-2">
-                  The Replay Analyzer is currently disabled in production because it requires IP allowlisting with the Clash Royale API.
-                </p>
-                <p className="text-sm">
-                  To enable this feature in production, you need to set up a static-IP proxy service. See the README for instructions.
-                </p>
+      {disabled && (
+        <div className="bg-secondary-container/10 border-l-4 border-secondary-container p-6 rounded-r-xl">
+          <div className="text-secondary-container">
+            <div className="font-bold text-lg mb-2">Production Mode Notice</div>
+            <p className="text-on-surface-variant mb-2">
+              The Replay Analyzer is currently disabled in production because it requires IP allowlisting with the Clash Royale API.
+            </p>
+            <p className="text-sm text-outline">
+              To enable this feature in production, you need to set up a static-IP proxy service. See the README for instructions.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Search Form */}
+      <div className="bg-surface-container-low rounded-xl p-8 border border-white/5">
+        <form onSubmit={handleAnalyze}>
+          <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">
+            Enter Your Player Tag
+          </label>
+          <p className="text-sm text-on-surface-variant mb-4">
+            Find your player tag in-game by tapping your profile. It looks like #ABC123XYZ
+          </p>
+          <div className="flex gap-4">
+            <input
+              type="text"
+              value={playerTag}
+              onChange={(e) => setPlayerTag(e.target.value)}
+              placeholder="#ABC123XYZ"
+              className="flex-1 px-4 py-3 bg-surface-container-high border border-outline-variant/30 rounded-lg text-lg text-on-surface focus:ring-1 focus:ring-primary/50 focus:border-primary/50 focus:outline-none transition-all placeholder:text-outline"
+              required
+            />
+            <button
+              type="submit"
+              disabled={loading || disabled}
+              className="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-lg shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {loading ? 'Analyzing...' : 'Analyze Battles'}
+            </button>
+          </div>
+        </form>
+
+        {error && (
+          <div className="mt-6 p-4 bg-error/10 border border-error/20 text-error rounded-lg">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {playerInfo && (
+        <>
+          {/* Player Info Card */}
+          <div className="bg-surface-container-low rounded-xl p-8 border border-white/5">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-6">Player Profile</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-surface-container-high rounded-lg p-4">
+                <div className="text-[10px] uppercase tracking-widest text-outline mb-1">Name</div>
+                <div className="text-xl font-semibold text-on-surface">{playerInfo.name}</div>
+              </div>
+              <div className="bg-surface-container-high rounded-lg p-4">
+                <div className="text-[10px] uppercase tracking-widest text-outline mb-1">Tag</div>
+                <div className="text-xl font-semibold text-on-surface">{playerInfo.tag}</div>
+              </div>
+              <div className="bg-surface-container-high rounded-lg p-4">
+                <div className="text-[10px] uppercase tracking-widest text-outline mb-1">Trophies</div>
+                <div className="text-xl font-semibold text-secondary-container">{playerInfo.trophies}</div>
+              </div>
+              <div className="bg-surface-container-high rounded-lg p-4">
+                <div className="text-[10px] uppercase tracking-widest text-outline mb-1">Best</div>
+                <div className="text-xl font-semibold text-primary">{playerInfo.bestTrophies}</div>
               </div>
             </div>
           </div>
-        )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-          <form onSubmit={handleAnalyze}>
-            <label className="block text-lg font-medium mb-4 text-gray-900 dark:text-white">
-              Enter Your Player Tag
-            </label>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Find your player tag in-game by tapping your profile. It looks like #ABC123XYZ
-            </p>
-            <div className="flex gap-4">
-              <input
-                type="text"
-                value={playerTag}
-                onChange={(e) => setPlayerTag(e.target.value)}
-                placeholder="#ABC123XYZ"
-                className="flex-1 px-4 py-3 border rounded-lg text-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading || disabled}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors"
-              >
-                {loading ? 'Analyzing...' : 'Analyze Battles'}
-              </button>
+          {/* Patterns Detected */}
+          {patterns.length > 0 ? (
+            <div className="bg-surface-container-low rounded-xl p-8 border border-white/5">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-secondary-container">radar</span>
+                <h2 className="text-sm font-bold text-white uppercase tracking-tight">Patterns Detected</h2>
+              </div>
+              <div className="space-y-4">
+                {patterns.map((pattern, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-6 rounded-lg ${getSeverityColor(pattern.severity)}`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-lg font-bold text-on-surface">
+                        {pattern.description}
+                      </h3>
+                      <span className="px-3 py-1 bg-surface-container-high rounded-full text-sm font-semibold text-on-surface">
+                        {pattern.occurrences}x
+                      </span>
+                    </div>
+                    <div className="mb-3 text-on-surface-variant">
+                      <strong>What to do:</strong> {pattern.recommendation}
+                    </div>
+                    <div className="text-[10px] uppercase font-black tracking-widest">
+                      Severity: {pattern.severity}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </form>
-
-          {error && (
-            <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg">
-              ❌ {error}
+          ) : (
+            <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-8">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="material-symbols-outlined text-green-400">check_circle</span>
+                </div>
+                <h3 className="text-2xl font-bold text-green-400 mb-2">
+                  No Major Issues Detected!
+                </h3>
+                <p className="text-on-surface-variant">
+                  Your recent battle performance looks solid. Keep it up!
+                </p>
+              </div>
             </div>
           )}
-        </div>
 
-        {playerInfo && (
-          <>
-            {/* Player Info Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-                Player Profile
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Name</div>
-                  <div className="text-xl font-semibold text-gray-900 dark:text-white">{playerInfo.name}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Tag</div>
-                  <div className="text-xl font-semibold text-gray-900 dark:text-white">{playerInfo.tag}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Trophies</div>
-                  <div className="text-xl font-semibold text-gray-900 dark:text-white">🏆 {playerInfo.trophies}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Best</div>
-                  <div className="text-xl font-semibold text-gray-900 dark:text-white">⭐ {playerInfo.bestTrophies}</div>
-                </div>
+          {/* Expert Advice */}
+          {expertAdvice.length > 0 && (
+            <div className="bg-surface-container rounded-xl p-8 border border-tertiary-container/10">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-tertiary">school</span>
+                <h3 className="text-sm font-bold text-white uppercase tracking-tight">Expert Coaching Tips</h3>
+              </div>
+              <div className="space-y-4">
+                {expertAdvice.map((advice, idx) => (
+                  <div key={idx} className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
+                    <div className="text-on-surface-variant mb-3 leading-relaxed">
+                      {advice.advice}
+                    </div>
+                    <div className="text-sm text-outline">
+                      Source: {advice.source}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* Patterns Detected */}
-            {patterns.length > 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                  🔍 Patterns Detected
-                </h2>
-                <div className="space-y-4">
-                  {patterns.map((pattern, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`border-l-4 p-6 rounded-lg ${getSeverityColor(pattern.severity)}`}
+          {/* Battle History */}
+          {battles.length > 0 && (
+            <div className="bg-surface-container-low rounded-xl p-8 border border-white/5">
+              <h3 className="text-sm font-bold text-white uppercase tracking-tight mb-6">
+                Battle History ({battles.length} battles)
+              </h3>
+
+              {/* Column Headers */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 pb-3 border-b border-outline-variant/20">
+                <div className="md:col-span-1 text-[10px] font-black uppercase tracking-widest text-outline">Result</div>
+                <div className="md:col-span-2 text-[10px] font-black uppercase tracking-widest text-outline">Score</div>
+                <div className="md:col-span-3 text-[10px] font-black uppercase tracking-widest text-outline">Opponent</div>
+                <div className="md:col-span-2 text-[10px] font-black uppercase tracking-widest text-outline">Type</div>
+                <div className="md:col-span-2 text-[10px] font-black uppercase tracking-widest text-outline">Mode</div>
+                <div className="md:col-span-2 text-[10px] font-black uppercase tracking-widest text-outline">Time</div>
+              </div>
+
+              <div className="space-y-3">
+                {battles.map((battle, idx) => {
+                  const playerTeam = battle.team?.[0] || {};
+                  const opponent = battle.opponent?.[0] || {};
+                  const playerCrowns = playerTeam.crowns || 0;
+                  const opponentCrowns = opponent.crowns || 0;
+                  const result = playerCrowns > opponentCrowns ? 'WIN' : playerCrowns < opponentCrowns ? 'LOSS' : 'DRAW';
+                  const resultColor = result === 'WIN' ? 'text-green-400' : result === 'LOSS' ? 'text-red-400' : 'text-outline';
+                  const borderColor = result === 'WIN' ? 'border-l-primary' : result === 'LOSS' ? 'border-l-error-container' : 'border-l-outline';
+                  const glowColor = result === 'WIN' ? 'shadow-[0_0_15px_rgba(169,199,255,0.1)]' : result === 'LOSS' ? 'shadow-[0_0_15px_rgba(147,0,10,0.1)]' : '';
+
+                  const battleDate = battle.battleTime ? parseCRDate(battle.battleTime) : null;
+                  const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`relative overflow-hidden p-4 rounded-lg bg-surface-container hover:bg-surface-container-high transition-all duration-300 border-l-4 ${borderColor} ${glowColor} cursor-pointer group`}
+                      onClick={() => setSelectedBattle(battle)}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-lg font-bold">
-                          {pattern.description}
-                        </h3>
-                        <span className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-sm font-semibold">
-                          {pattern.occurrences}x
-                        </span>
-                      </div>
-                      <div className="mb-3">
-                        💡 <strong>What to do:</strong> {pattern.recommendation}
-                      </div>
-                      <div className="text-sm uppercase font-semibold">
-                        Severity: {pattern.severity}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <div className="text-center">
-                  <div className="text-4xl mb-4">✅</div>
-                  <h3 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-2">
-                    No Major Issues Detected!
-                  </h3>
-                  <p className="text-green-700 dark:text-green-400">
-                    Your recent battle performance looks solid. Keep it up!
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Expert Advice */}
-            {expertAdvice.length > 0 && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow-lg p-8 mb-6">
-                <h3 className="text-2xl font-bold mb-4 text-purple-800 dark:text-purple-300">
-                  🎓 Expert Coaching Tips
-                </h3>
-                <div className="space-y-4">
-                  {expertAdvice.map((advice, idx) => (
-                    <div key={idx} className="bg-white dark:bg-gray-800 p-6 rounded-lg">
-                      <div className="text-purple-700 dark:text-purple-400 mb-3 leading-relaxed">
-                        {advice.advice}
-                      </div>
-                      <div className="text-sm text-purple-600 dark:text-purple-500">
-                        💡 Source: {advice.source}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Battle History */}
-            {battles.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                  📜 Battle History ({battles.length} battles)
-                </h3>
-                
-                {/* Column Headers */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 pb-3 border-b border-gray-300 dark:border-gray-600">
-                  <div className="md:col-span-1 text-sm font-semibold text-gray-600 dark:text-gray-400">Result</div>
-                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Score</div>
-                  <div className="md:col-span-3 text-sm font-semibold text-gray-600 dark:text-gray-400">Opponent</div>
-                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Type</div>
-                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Mode</div>
-                  <div className="md:col-span-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Time</div>
-                </div>
-                
-                <div className="space-y-3">
-                  {battles.map((battle, idx) => {
-                    const playerTeam = battle.team?.[0] || {};
-                    const opponent = battle.opponent?.[0] || {};
-                    const playerCrowns = playerTeam.crowns || 0;
-                    const opponentCrowns = opponent.crowns || 0;
-                    const result = playerCrowns > opponentCrowns ? 'WIN' : playerCrowns < opponentCrowns ? 'LOSS' : 'DRAW';
-                    const resultColor = result === 'WIN' ? 'text-green-600 dark:text-green-400' : result === 'LOSS' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
-                    const bgColor = result === 'WIN' ? 'bg-green-50 dark:bg-green-900/10' : result === 'LOSS' ? 'bg-red-50 dark:bg-red-900/10' : 'bg-gray-50 dark:bg-gray-900/10';
-                    
-                    // Parse date properly - Clash Royale API returns non-standard ISO format
-                    // Format: 20260110T060158.000Z -> 2026-01-10T06:01:58.000Z
-                    const battleDate = battle.battleTime ? parseCRDate(battle.battleTime) : null;
-                    const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
-                    
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`${bgColor} border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() => setSelectedBattle(battle)}
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                          {/* Result */}
-                          <div className={`md:col-span-1 text-lg font-bold ${resultColor}`}>
-                            {result}
-                          </div>
-                          
-                          {/* Score */}
-                          <div className="md:col-span-2 text-gray-700 dark:text-gray-300">
-                            <span className="font-semibold">🏆 {playerCrowns}</span>
-                            <span className="mx-2">-</span>
-                            <span className="font-semibold">{opponentCrowns}</span>
-                          </div>
-                          
-                          {/* Opponent */}
-                          <div className="md:col-span-3 text-sm text-gray-600 dark:text-gray-400">
-                            vs {opponent.name || 'Unknown'}
-                          </div>
-                          
-                          {/* Type */}
-                          <div className="md:col-span-2">
-                            {battle.type && (
-                              <div className="inline-block px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm text-gray-600 dark:text-gray-400">
-                                {battle.type.replace(/([A-Z])/g, ' $1').trim()}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Mode */}
-                          <div className="md:col-span-2">
-                            {battle.gameMode?.name && (
-                              <div className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-sm">
-                                {battle.gameMode.name}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Time */}
-                          <div className="md:col-span-2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                            🕐 {timeAgo}
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                        <div className={`md:col-span-1 text-lg font-black ${resultColor}`}>
+                          {result}
                         </div>
-                        
-                        {/* Show trophy change if available */}
-                        {battle.team?.[0]?.trophyChange !== undefined && (
-                          <div className="mt-2 text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Trophy change: </span>
-                            <span className={battle.team[0].trophyChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-                              {battle.team[0].trophyChange >= 0 ? '+' : ''}{battle.team[0].trophyChange}
-                            </span>
-                          </div>
-                        )}
-                        
-                        <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                          Click for detailed analysis →
+                        <div className="md:col-span-2 text-on-surface">
+                          <span className="font-semibold">{playerCrowns}</span>
+                          <span className="mx-2 text-outline">-</span>
+                          <span className="font-semibold">{opponentCrowns}</span>
+                        </div>
+                        <div className="md:col-span-3 text-sm text-on-surface-variant">
+                          vs {opponent.name || 'Unknown'}
+                        </div>
+                        <div className="md:col-span-2">
+                          {battle.type && (
+                            <div className="inline-block px-2 py-1 bg-surface-container-highest rounded text-sm text-on-surface-variant">
+                              {battle.type.replace(/([A-Z])/g, ' $1').trim()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="md:col-span-2">
+                          {battle.gameMode?.name && (
+                            <div className="inline-block px-2 py-1 bg-primary/10 text-primary rounded text-sm">
+                              {battle.gameMode.name}
+                            </div>
+                          )}
+                        </div>
+                        <div className="md:col-span-2 text-sm text-outline whitespace-nowrap">
+                          {timeAgo}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </>
-        )}
 
-        {/* Battle Detail Modal */}
-        {selectedBattle && (
-          <BattleDetailModal 
-            battle={selectedBattle} 
-            onClose={() => setSelectedBattle(null)}
-            playerTag={playerInfo?.tag}
-          />
-        )}
-      </div>
+                      {battle.team?.[0]?.trophyChange !== undefined && (
+                        <div className="mt-2 text-sm">
+                          <span className="text-outline">Trophy change: </span>
+                          <span className={battle.team[0].trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}>
+                            {battle.team[0].trophyChange >= 0 ? '+' : ''}{battle.team[0].trophyChange}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="mt-2 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click for detailed analysis
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Battle Detail Modal */}
+      {selectedBattle && (
+        <BattleDetailModal
+          battle={selectedBattle}
+          onClose={() => setSelectedBattle(null)}
+          playerTag={playerInfo?.tag}
+        />
+      )}
     </div>
   );
 }
 
 function parseCRDate(crDate: string): Date | null {
-  // Clash Royale API format: 20260110T060158.000Z -> 2026-01-10T06:01:58.000Z
   if (!crDate || crDate.length < 15) return null;
-  
+
   const year = crDate.substring(0, 4);
   const month = crDate.substring(4, 6);
   const day = crDate.substring(6, 8);
   const hour = crDate.substring(9, 11);
   const min = crDate.substring(11, 13);
   const sec = crDate.substring(13, 15);
-  const ms = crDate.substring(15); // .000Z
-  
+  const ms = crDate.substring(15);
+
   const isoDate = `${year}-${month}-${day}T${hour}:${min}:${sec}${ms}`;
   return new Date(isoDate);
 }
 
 function getTimeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  
+
   if (seconds < 60) return 'just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-  
+
   return date.toLocaleDateString();
 }
 
@@ -382,16 +371,16 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
   const playerCrowns = playerTeam.crowns || 0;
   const opponentCrowns = opponent.crowns || 0;
   const result = playerCrowns > opponentCrowns ? 'WIN' : playerCrowns < opponentCrowns ? 'LOSS' : 'DRAW';
-  const resultColor = result === 'WIN' ? 'text-green-600 dark:text-green-400' : result === 'LOSS' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
-  const bgColor = result === 'WIN' ? 'bg-green-50 dark:bg-green-900/10' : result === 'LOSS' ? 'bg-red-50 dark:bg-red-900/10' : 'bg-gray-50 dark:bg-gray-900/10';
-  
+  const resultColor = result === 'WIN' ? 'text-green-400' : result === 'LOSS' ? 'text-red-400' : 'text-outline';
+  const borderColor = result === 'WIN' ? 'border-primary' : result === 'LOSS' ? 'border-error' : 'border-outline';
+
   const battleDate = battle.battleTime ? parseCRDate(battle.battleTime) : null;
   const timeAgo = battleDate && !isNaN(battleDate.getTime()) ? getTimeAgo(battleDate) : 'Unknown';
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
     setAnalysisError('');
-    
+
     try {
       const response = await fetch('/api/replay-analyzer/analyze-battle', {
         method: 'POST',
@@ -415,47 +404,47 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
 
   const getFavorabilityColor = (favorability: string) => {
     switch (favorability) {
-      case 'favorable': return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30';
-      case 'unfavorable': return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30';
-      default: return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30';
+      case 'favorable': return 'text-green-400 bg-green-500/10';
+      case 'unfavorable': return 'text-red-400 bg-red-500/10';
+      default: return 'text-yellow-400 bg-yellow-500/10';
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div 
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-surface-container-low rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto border border-white/5"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`${bgColor} p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10`}>
+        <div className={`p-6 border-b-2 ${borderColor} sticky top-0 z-10 bg-surface-container-low`}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className={`text-3xl font-bold ${resultColor} mb-2`}>
+              <h2 className={`text-3xl font-black ${resultColor} mb-2`}>
                 {result}
               </h2>
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                <span>🕐 {timeAgo}</span>
+              <div className="flex items-center gap-4 text-sm text-on-surface-variant">
+                <span>{timeAgo}</span>
                 {battle.gameMode?.name && (
-                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
+                  <span className="px-2 py-1 bg-primary/10 text-primary rounded">
                     {battle.gameMode.name}
                   </span>
                 )}
                 {battle.type && (
-                  <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">
+                  <span className="px-2 py-1 bg-surface-container-highest rounded">
                     {battle.type.replace(/([A-Z])/g, ' $1').trim()}
                   </span>
                 )}
                 {battle.arena?.name && (
-                  <span>🏟️ {battle.arena.name}</span>
+                  <span className="text-outline">{battle.arena.name}</span>
                 )}
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
+              className="text-outline hover:text-on-surface text-2xl transition-colors"
             >
-              ✕
+              <span className="material-symbols-outlined">close</span>
             </button>
           </div>
         </div>
@@ -466,46 +455,44 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
             {/* Player Side */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-xl font-bold text-on-surface">
                   {playerTeam.name || 'You'}
                 </h3>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  👑 {playerCrowns}
+                <div className="text-2xl font-bold text-primary">
+                  {playerCrowns}
                 </div>
               </div>
 
-              {/* Trophy Change */}
               {playerTeam.trophyChange !== undefined && (
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <div className="mb-4 p-3 bg-surface-container-high rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Trophy Change</span>
-                    <span className={`text-lg font-bold ${playerTeam.trophyChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className="text-sm text-on-surface-variant">Trophy Change</span>
+                    <span className={`text-lg font-bold ${playerTeam.trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {playerTeam.trophyChange >= 0 ? '+' : ''}{playerTeam.trophyChange}
                     </span>
                   </div>
                   {playerTeam.startingTrophies !== undefined && (
-                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Starting: {playerTeam.startingTrophies} 🏆
+                    <div className="text-xs text-outline mt-1">
+                      Starting: {playerTeam.startingTrophies}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Tower HP */}
               {playerTeam.kingTowerHitPoints !== undefined && (
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tower HP</div>
+                <div className="mb-4 p-3 bg-surface-container-high rounded-lg">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tower HP</div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">👑 King Tower</span>
-                      <span className={playerTeam.kingTowerHitPoints > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                      <span className="text-on-surface-variant">King Tower</span>
+                      <span className={playerTeam.kingTowerHitPoints > 0 ? 'text-green-400' : 'text-red-400'}>
                         {playerTeam.kingTowerHitPoints > 0 ? `${playerTeam.kingTowerHitPoints} HP` : 'Destroyed'}
                       </span>
                     </div>
                     {playerTeam.princessTowersHitPoints?.map((hp: number, idx: number) => (
                       <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">🏰 Princess Tower {idx + 1}</span>
-                        <span className={hp > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                        <span className="text-on-surface-variant">Princess Tower {idx + 1}</span>
+                        <span className={hp > 0 ? 'text-green-400' : 'text-red-400'}>
                           {hp > 0 ? `${hp} HP` : 'Destroyed'}
                         </span>
                       </div>
@@ -514,15 +501,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
                 </div>
               )}
 
-              {/* Deck */}
               <div className="mb-4">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Deck Used</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Deck Used</h4>
                 <div className="grid grid-cols-4 gap-2">
                   {playerTeam.cards?.map((card: any, idx: number) => (
                     <div key={idx} className="relative group">
-                      <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-2 shadow-md">
-                        <img 
-                          src={card.iconUrls?.medium || '/placeholder-card.png'} 
+                      <div className="bg-surface-container-high border border-primary/20 rounded-lg p-2 shadow-md">
+                        <img
+                          src={card.iconUrls?.medium || '/placeholder-card.png'}
                           alt={card.name}
                           className="w-full h-auto rounded"
                           onError={(e) => {
@@ -534,7 +520,7 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
                           {card.level}
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-1 text-gray-700 dark:text-gray-300 truncate">
+                      <div className="text-xs text-center mt-1 text-on-surface-variant truncate">
                         {card.name}
                       </div>
                     </div>
@@ -546,46 +532,44 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
             {/* Opponent Side */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-xl font-bold text-on-surface">
                   {opponent.name || 'Opponent'}
                 </h3>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  👑 {opponentCrowns}
+                <div className="text-2xl font-bold text-error">
+                  {opponentCrowns}
                 </div>
               </div>
 
-              {/* Trophy Change */}
               {opponent.trophyChange !== undefined && (
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <div className="mb-4 p-3 bg-surface-container-high rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Trophy Change</span>
-                    <span className={`text-lg font-bold ${opponent.trophyChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className="text-sm text-on-surface-variant">Trophy Change</span>
+                    <span className={`text-lg font-bold ${opponent.trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {opponent.trophyChange >= 0 ? '+' : ''}{opponent.trophyChange}
                     </span>
                   </div>
                   {opponent.startingTrophies !== undefined && (
-                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Starting: {opponent.startingTrophies} 🏆
+                    <div className="text-xs text-outline mt-1">
+                      Starting: {opponent.startingTrophies}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Tower HP */}
               {opponent.kingTowerHitPoints !== undefined && (
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tower HP</div>
+                <div className="mb-4 p-3 bg-surface-container-high rounded-lg">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tower HP</div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">👑 King Tower</span>
-                      <span className={opponent.kingTowerHitPoints > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                      <span className="text-on-surface-variant">King Tower</span>
+                      <span className={opponent.kingTowerHitPoints > 0 ? 'text-green-400' : 'text-red-400'}>
                         {opponent.kingTowerHitPoints > 0 ? `${opponent.kingTowerHitPoints} HP` : 'Destroyed'}
                       </span>
                     </div>
                     {opponent.princessTowersHitPoints?.map((hp: number, idx: number) => (
                       <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">🏰 Princess Tower {idx + 1}</span>
-                        <span className={hp > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                        <span className="text-on-surface-variant">Princess Tower {idx + 1}</span>
+                        <span className={hp > 0 ? 'text-green-400' : 'text-red-400'}>
                           {hp > 0 ? `${hp} HP` : 'Destroyed'}
                         </span>
                       </div>
@@ -594,15 +578,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
                 </div>
               )}
 
-              {/* Deck */}
               <div className="mb-4">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Opponent's Deck</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Opponent&apos;s Deck</h4>
                 <div className="grid grid-cols-4 gap-2">
                   {opponent.cards?.map((card: any, idx: number) => (
                     <div key={idx} className="relative group">
-                      <div className="bg-gradient-to-br from-red-500 to-orange-600 rounded-lg p-2 shadow-md">
-                        <img 
-                          src={card.iconUrls?.medium || '/placeholder-card.png'} 
+                      <div className="bg-surface-container-high border border-error/20 rounded-lg p-2 shadow-md">
+                        <img
+                          src={card.iconUrls?.medium || '/placeholder-card.png'}
                           alt={card.name}
                           className="w-full h-auto rounded"
                           onError={(e) => {
@@ -614,7 +597,7 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
                           {card.level}
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-1 text-gray-700 dark:text-gray-300 truncate">
+                      <div className="text-xs text-center mt-1 text-on-surface-variant truncate">
                         {card.name}
                       </div>
                     </div>
@@ -625,37 +608,37 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
           </div>
 
           {/* Additional Battle Info */}
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Battle Information</h4>
+          <div className="mt-6 p-4 bg-surface-container rounded-lg border border-outline-variant/10">
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Battle Information</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               {battle.deckSelection && (
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Deck Selection:</span>
-                  <div className="font-medium text-gray-900 dark:text-white capitalize">
+                  <span className="text-outline">Deck Selection:</span>
+                  <div className="font-medium text-on-surface capitalize">
                     {battle.deckSelection}
                   </div>
                 </div>
               )}
               {battle.isLadderTournament !== undefined && (
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Ladder Tournament:</span>
-                  <div className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-outline">Ladder Tournament:</span>
+                  <div className="font-medium text-on-surface">
                     {battle.isLadderTournament ? 'Yes' : 'No'}
                   </div>
                 </div>
               )}
               {playerTeam.tag && (
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Your Tag:</span>
-                  <div className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-outline">Your Tag:</span>
+                  <div className="font-medium text-on-surface">
                     {playerTeam.tag}
                   </div>
                 </div>
               )}
               {opponent.tag && (
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Opponent Tag:</span>
-                  <div className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-outline">Opponent Tag:</span>
+                  <div className="font-medium text-on-surface">
                     {opponent.tag}
                   </div>
                 </div>
@@ -665,36 +648,36 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
 
           {/* AI Analysis Section */}
           {!analysis && (
-            <div className="mt-6 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+            <div className="mt-6 p-6 bg-primary/5 rounded-lg border border-primary/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-1">
+                  <h4 className="text-lg font-bold text-primary mb-1">
                     AI Battle Analysis
                   </h4>
-                  <p className="text-sm text-indigo-700 dark:text-indigo-400">
+                  <p className="text-sm text-on-surface-variant">
                     Get AI-powered insights on why you {result.toLowerCase() === 'win' ? 'won' : result.toLowerCase() === 'loss' ? 'lost' : 'drew'} and how to improve
                   </p>
                 </div>
                 <button
                   onClick={handleAnalyze}
                   disabled={analyzing}
-                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-lg transition-colors flex items-center gap-2"
+                  className="px-6 py-3 bg-gradient-to-br from-primary to-primary-container text-white font-semibold rounded-lg transition-all hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100 flex items-center gap-2"
                 >
                   {analyzing ? (
                     <>
-                      <span className="animate-spin">⚡</span>
+                      <span className="animate-spin material-symbols-outlined text-sm">progress_activity</span>
                       Analyzing...
                     </>
                   ) : (
                     <>
-                      <span>🤖</span>
+                      <span className="material-symbols-outlined text-sm">psychology</span>
                       Analyze with AI
                     </>
                   )}
                 </button>
               </div>
               {analysisError && (
-                <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm">
+                <div className="mt-4 p-3 bg-error/10 text-error rounded-lg text-sm">
                   {analysisError}
                 </div>
               )}
@@ -705,54 +688,55 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
           {analysis && (
             <div className="mt-6 space-y-6">
               {/* Summary */}
-              <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                <h4 className="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-3 flex items-center gap-2">
-                  <span>🤖</span> AI Battle Analysis
-                </h4>
-                <p className="text-indigo-800 dark:text-indigo-200 leading-relaxed">
+              <div className="p-6 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-primary">psychology</span>
+                  <h4 className="text-lg font-bold text-primary">AI Battle Analysis</h4>
+                </div>
+                <p className="text-on-surface leading-relaxed">
                   {analysis.summary}
                 </p>
               </div>
 
               {/* Matchup Analysis */}
-              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              <div className="p-6 bg-surface-container rounded-lg border border-outline-variant/10">
+                <h4 className="text-sm font-bold text-white uppercase tracking-tight mb-4">
                   Matchup Analysis
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-xs text-blue-600 dark:text-blue-400 uppercase font-semibold mb-1">Your Deck</div>
-                    <div className="font-bold text-blue-900 dark:text-blue-200">{analysis.matchupAnalysis.playerDeckType}</div>
+                  <div className="text-center p-3 bg-primary/10 rounded-lg">
+                    <div className="text-[10px] text-primary uppercase font-semibold mb-1">Your Deck</div>
+                    <div className="font-bold text-on-surface">{analysis.matchupAnalysis.playerDeckType}</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                    <span className="text-2xl">⚔️</span>
+                  <div className="text-center p-3 bg-surface-container-high rounded-lg flex items-center justify-center">
+                    <span className="material-symbols-outlined text-outline text-2xl">swords</span>
                   </div>
-                  <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <div className="text-xs text-red-600 dark:text-red-400 uppercase font-semibold mb-1">Opponent Deck</div>
-                    <div className="font-bold text-red-900 dark:text-red-200">{analysis.matchupAnalysis.opponentDeckType}</div>
+                  <div className="text-center p-3 bg-error/10 rounded-lg">
+                    <div className="text-[10px] text-error uppercase font-semibold mb-1">Opponent Deck</div>
+                    <div className="font-bold text-on-surface">{analysis.matchupAnalysis.opponentDeckType}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Matchup:</span>
+                  <span className="text-sm text-on-surface-variant">Matchup:</span>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${getFavorabilityColor(analysis.matchupAnalysis.matchupFavorability)}`}>
                     {analysis.matchupAnalysis.matchupFavorability}
                   </span>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 text-sm">
+                <p className="text-on-surface-variant text-sm">
                   {analysis.matchupAnalysis.explanation}
                 </p>
               </div>
 
               {/* Key Factors */}
               {analysis.keyFactors.length > 0 && (
-                <div className="p-6 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <h4 className="text-lg font-bold text-amber-900 dark:text-amber-300 mb-3">
+                <div className="p-6 bg-secondary-container/5 rounded-lg border border-secondary-container/10">
+                  <h4 className="text-sm font-bold text-secondary-container uppercase tracking-tight mb-3">
                     Key Factors
                   </h4>
                   <ul className="space-y-2">
                     {analysis.keyFactors.map((factor, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-amber-800 dark:text-amber-200">
-                        <span className="text-amber-500 mt-1">•</span>
+                      <li key={idx} className="flex items-start gap-2 text-on-surface-variant text-sm">
+                        <span className="text-secondary-container mt-0.5">&#8226;</span>
                         <span>{factor}</span>
                       </li>
                     ))}
@@ -762,14 +746,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
 
               {/* What Went Well */}
               {analysis.whatWentWell.length > 0 && (
-                <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <h4 className="text-lg font-bold text-green-900 dark:text-green-300 mb-3">
+                <div className="p-6 bg-green-500/5 rounded-lg border border-green-500/10">
+                  <h4 className="text-sm font-bold text-green-400 uppercase tracking-tight mb-3">
                     What Went Well
                   </h4>
                   <ul className="space-y-2">
                     {analysis.whatWentWell.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-green-800 dark:text-green-200">
-                        <span className="text-green-500 mt-1">+</span>
+                      <li key={idx} className="flex items-start gap-2 text-on-surface-variant text-sm">
+                        <span className="text-green-400 mt-0.5">+</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -779,14 +763,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
 
               {/* What Could Improve */}
               {analysis.whatCouldImprove.length > 0 && (
-                <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                  <h4 className="text-lg font-bold text-red-900 dark:text-red-300 mb-3">
+                <div className="p-6 bg-error/5 rounded-lg border border-error/10">
+                  <h4 className="text-sm font-bold text-error uppercase tracking-tight mb-3">
                     Areas for Improvement
                   </h4>
                   <ul className="space-y-2">
                     {analysis.whatCouldImprove.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-red-800 dark:text-red-200">
-                        <span className="text-red-500 mt-1">→</span>
+                      <li key={idx} className="flex items-start gap-2 text-on-surface-variant text-sm">
+                        <span className="text-error mt-0.5">&rarr;</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -796,14 +780,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
 
               {/* Tactical Tips */}
               {analysis.tacticalTips.length > 0 && (
-                <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h4 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-3">
+                <div className="p-6 bg-primary/5 rounded-lg border border-primary/10">
+                  <h4 className="text-sm font-bold text-primary uppercase tracking-tight mb-3">
                     Tactical Tips
                   </h4>
                   <ul className="space-y-3">
                     {analysis.tacticalTips.map((tip, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-blue-800 dark:text-blue-200">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300 flex items-center justify-center text-sm font-bold">
+                      <li key={idx} className="flex items-start gap-3 text-on-surface-variant text-sm">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
                           {idx + 1}
                         </span>
                         <span>{tip}</span>
@@ -814,18 +798,18 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
               )}
 
               {/* Deck Doctor Recommendation */}
-              <div className="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                <h4 className="text-lg font-bold text-purple-900 dark:text-purple-300 mb-3">
+              <div className="p-6 bg-tertiary-container/5 rounded-lg border border-tertiary-container/10">
+                <h4 className="text-sm font-bold text-tertiary uppercase tracking-tight mb-3">
                   Deck Doctor Recommendation
                 </h4>
-                <p className="text-purple-800 dark:text-purple-200 mb-4">
+                <p className="text-on-surface-variant mb-4 text-sm leading-relaxed">
                   {analysis.deckDoctorRecommendation}
                 </p>
                 <a
                   href={`/deck-doctor?cards=${encodeURIComponent(playerTeam.cards?.map((c: any) => c.name).join(',') || '')}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-tertiary-container text-white font-semibold rounded-lg transition-colors hover:bg-tertiary-container/80"
                 >
-                  <span>🔬</span>
+                  <span className="material-symbols-outlined text-sm">healing</span>
                   Open Deck Doctor
                 </a>
               </div>
@@ -837,14 +821,14 @@ function BattleDetailModal({ battle, onClose, playerTag }: BattleDetailModalProp
             {!analysis && (
               <a
                 href={`/deck-doctor?cards=${encodeURIComponent(playerTeam.cards?.map((c: any) => c.name).join(',') || '')}`}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                className="px-6 py-3 bg-tertiary-container text-white font-semibold rounded-lg transition-colors hover:bg-tertiary-container/80"
               >
                 Analyze Your Deck
               </a>
             )}
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+              className="px-6 py-3 bg-surface-container-high text-on-surface font-semibold rounded-lg transition-colors hover:bg-surface-container-highest"
             >
               Close
             </button>
