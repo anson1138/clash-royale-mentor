@@ -1,7 +1,8 @@
 import { NormalizedNewsItem } from './types';
 
+// Use /hot instead of flair search — the "News" flair is rarely used
 const REDDIT_URL =
-  'https://www.reddit.com/r/ClashRoyale/search.json?q=flair%3ANews&sort=new&restrict_sr=on&limit=10';
+  'https://www.reddit.com/r/ClashRoyale/hot.json?limit=10';
 
 const INVALID_THUMBNAILS = new Set(['self', 'default', 'nsfw', 'spoiler', 'image', '']);
 
