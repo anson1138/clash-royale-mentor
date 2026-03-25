@@ -1,58 +1,65 @@
 import { NormalizedNewsItem } from './types';
 
-// Use /hot instead of flair search — the "News" flair is rarely used
-const REDDIT_URL =
-  'https://www.reddit.com/r/ClashRoyale/hot.json?limit=10';
+const APIFY_ACTOR = 'trudax~reddit-scraper-lite';
+const SUBREDDIT_URL = 'https://www.reddit.com/r/ClashRoyale/hot/';
+const MAX_ITEMS = 10;
 
-const INVALID_THUMBNAILS = new Set(['self', 'default', 'nsfw', 'spoiler', 'image', '']);
-
-interface RedditPost {
-  data: {
-    title: string;
-    selftext: string;
-    permalink: string;
-    url: string;
-    thumbnail: string;
-    created_utc: number;
-    link_flair_text?: string;
-  };
+interface ApifyRedditPost {
+  title: string;
+  body?: string;
+  url: string;
+  thumbnailUrl?: string;
+  imageUrls?: string[];
+  createdAt?: string;
+  isAd?: boolean;
 }
 
 export async function fetchRedditNews(): Promise<NormalizedNewsItem[]> {
-  const response = await fetch(REDDIT_URL, {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept': 'application/json',
-    },
-  });
+  const apiToken = process.env.APIFY_API_TOKEN;
 
-  if (!response.ok) {
-    throw new Error(`Reddit returned ${response.status}`);
+  if (!apiToken) {
+    console.warn('APIFY_API_TOKEN not set — skipping Reddit news');
+    return [];
   }
 
-  const json = await response.json();
-  const posts: RedditPost[] = json?.data?.children || [];
+  const response = await fetch(
+    `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items?token=${apiToken}&timeout=60`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        startUrls: [{ url: SUBREDDIT_URL }],
+        maxItems: MAX_ITEMS,
+      }),
+    }
+  );
 
-  return posts.map((post) => {
-    const { title, selftext, permalink, thumbnail, created_utc } = post.data;
+  if (!response.ok) {
+    throw new Error(`Apify Reddit returned ${response.status}`);
+  }
 
-    const summary = selftext
-      ? selftext.substring(0, 200) + (selftext.length > 200 ? '...' : '')
-      : title;
+  const posts: ApifyRedditPost[] = await response.json();
 
-    const thumbnailUrl =
-      thumbnail && !INVALID_THUMBNAILS.has(thumbnail) && thumbnail.startsWith('http')
-        ? thumbnail
-        : undefined;
+  return posts
+    .filter((post) => post.title && !post.isAd)
+    .map((post) => {
+      const summary = post.body
+        ? post.body.substring(0, 200) + (post.body.length > 200 ? '...' : '')
+        : post.title;
 
-    return {
-      title,
-      summary,
-      source: 'reddit' as const,
-      sourceUrl: `https://www.reddit.com${permalink}`,
-      thumbnailUrl,
-      publishedAt: created_utc * 1000,
-    };
-  });
+      const thumbnailUrl =
+        post.imageUrls?.[0] ||
+        (post.thumbnailUrl && post.thumbnailUrl !== 'self' && post.thumbnailUrl.startsWith('http')
+          ? post.thumbnailUrl
+          : undefined);
+
+      return {
+        title: post.title,
+        summary,
+        source: 'reddit' as const,
+        sourceUrl: post.url,
+        thumbnailUrl,
+        publishedAt: post.createdAt ? new Date(post.createdAt).getTime() : Date.now(),
+      };
+    });
 }
