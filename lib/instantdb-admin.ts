@@ -48,3 +48,14 @@ export interface SourceChunk {
   metadata?: string;
   createdAt: number;
 }
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  source: 'supercell' | 'reddit' | 'youtube' | 'twitter';
+  sourceUrl: string;
+  thumbnailUrl?: string;
+  publishedAt: number;
+  fetchedAt: number;
+}

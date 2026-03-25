@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Deck Doctor', href: '/deck-doctor', icon: 'healing' },
   { label: 'Counter Guide', href: '/counter-guide', icon: 'shield' },
   { label: 'Tactical Replays', href: '/replay-analyzer', icon: 'slow_motion_video' },
+  { label: 'News', href: '/news', icon: 'newspaper' },
   { label: 'Masterclass', href: '/tutorials', icon: 'school' },
   { label: 'Trophy Road', href: '/pro-tips', icon: 'emoji_events' },
 ];

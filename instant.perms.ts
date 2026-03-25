@@ -36,6 +36,16 @@ const rules = {
     },
   },
   
+  // News & Announcements
+  news: {
+    allow: {
+      view: 'true',
+      create: 'false',
+      update: 'false',
+      delete: 'false',
+    },
+  },
+
   // User Decks (personal data)
   decks: {
     allow: {
