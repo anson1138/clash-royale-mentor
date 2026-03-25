@@ -3,14 +3,12 @@
 import { useState, useEffect } from 'react';
 
 interface NewsItem {
-  id: string;
   title: string;
   summary: string;
   source: 'supercell' | 'reddit' | 'youtube' | 'twitter';
   sourceUrl: string;
   thumbnailUrl?: string;
   publishedAt: number;
-  fetchedAt: number;
 }
 
 type SourceFilter = 'all' | 'supercell' | 'reddit' | 'youtube' | 'twitter';
@@ -207,7 +205,7 @@ export default function NewsPage() {
                 const badge = SOURCE_BADGES[item.source];
                 return (
                   <a
-                    key={item.id}
+                    key={item.sourceUrl}
                     href={item.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"

@@ -1,32 +1,15 @@
 import { NextResponse } from 'next/server';
-import { init } from '@instantdb/admin';
+import { fetchAllNews } from '@/lib/news/refreshAll';
 
-const db = init({
-  appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID || '4529e179-cfd4-4a05-98fa-6c108177452f',
-  adminToken: process.env.INSTANT_ADMIN_TOKEN,
-});
-
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const source = searchParams.get('source');
-
-    const result = await db.query({
-      news: {
-        $: {
-          ...(source ? { where: { source } } : {}),
-        },
-      },
-    });
-
-    // Sort by publishedAt descending, limit to 50
-    const news = (result.news || [])
-      .sort((a: any, b: any) => (b.publishedAt || 0) - (a.publishedAt || 0))
-      .slice(0, 50);
+    const result = await fetchAllNews();
 
     return NextResponse.json({
       success: true,
-      news,
+      news: result.news,
+      fromCache: result.fromCache,
+      errors: result.errors,
     });
   } catch (error) {
     console.error('Error fetching news:', error);

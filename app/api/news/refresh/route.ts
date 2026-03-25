@@ -1,25 +1,13 @@
 import { NextResponse } from 'next/server';
-import { refreshAllNews } from '@/lib/news/refreshAll';
+import { forceRefreshNews } from '@/lib/news/refreshAll';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    // Optional auth check for cron security
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      const authHeader = request.headers.get('authorization');
-      if (authHeader !== `Bearer ${cronSecret}`) {
-        return NextResponse.json(
-          { success: false, error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-    }
-
-    const result = await refreshAllNews();
+    const result = await forceRefreshNews();
 
     return NextResponse.json({
       success: true,
-      message: `News refresh complete. Inserted ${result.inserted} new items.`,
+      message: `Fetched ${result.news.length} news items from all sources.`,
       errors: result.errors,
     });
   } catch (error) {

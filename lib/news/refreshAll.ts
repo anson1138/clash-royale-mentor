@@ -1,5 +1,3 @@
-import { adminDb } from '@/lib/instantdb-admin';
-import { id as createId } from '@instantdb/admin';
 import { fetchSupercellNews } from './supercellFetcher';
 import { fetchRedditNews } from './redditFetcher';
 import { fetchYouTubeNews } from './youtubeFetcher';
@@ -8,14 +6,32 @@ import { NormalizedNewsItem } from './types';
 
 const SOURCE_NAMES = ['supercell', 'reddit', 'youtube', 'twitter'] as const;
 
-export async function refreshAllNews(): Promise<{
-  inserted: number;
+// In-memory cache with timestamp
+let cachedNews: NormalizedNewsItem[] = [];
+let cacheTime = 0;
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export async function fetchAllNews(): Promise<{
+  news: NormalizedNewsItem[];
   errors: string[];
+  fromCache: boolean;
+}> {
+  // Return cache if fresh
+  if (cachedNews.length > 0 && Date.now() - cacheTime < CACHE_TTL) {
+    return { news: cachedNews, errors: [], fromCache: true };
+  }
+
+  return forceRefreshNews();
+}
+
+export async function forceRefreshNews(): Promise<{
+  news: NormalizedNewsItem[];
+  errors: string[];
+  fromCache: boolean;
 }> {
   const errors: string[] = [];
   const allItems: NormalizedNewsItem[] = [];
 
-  // Fetch from all sources concurrently
   const results = await Promise.allSettled([
     fetchSupercellNews(),
     fetchRedditNews(),
@@ -34,41 +50,20 @@ export async function refreshAllNews(): Promise<{
     }
   });
 
-  if (allItems.length === 0) {
-    return { inserted: 0, errors };
-  }
+  // Deduplicate by sourceUrl
+  const seen = new Set<string>();
+  const deduplicated = allItems.filter((item) => {
+    if (seen.has(item.sourceUrl)) return false;
+    seen.add(item.sourceUrl);
+    return true;
+  });
 
-  // Query existing news to deduplicate by sourceUrl
-  const existing = await adminDb.query({ news: {} });
-  const existingUrls = new Set(
-    (existing.news || []).map((item: any) => item.sourceUrl)
-  );
+  // Sort by publishedAt descending
+  deduplicated.sort((a, b) => b.publishedAt - a.publishedAt);
 
-  const newItems = allItems.filter((item) => !existingUrls.has(item.sourceUrl));
+  // Update cache
+  cachedNews = deduplicated;
+  cacheTime = Date.now();
 
-  if (newItems.length === 0) {
-    console.log('[news] No new items to insert');
-    return { inserted: 0, errors };
-  }
-
-  // Insert new items in batches of 10
-  const BATCH_SIZE = 10;
-  for (let i = 0; i < newItems.length; i += BATCH_SIZE) {
-    const batch = newItems.slice(i, i + BATCH_SIZE);
-    const txns = batch.map((item) =>
-      adminDb.tx.news[createId()].update({
-        title: item.title,
-        summary: item.summary,
-        source: item.source,
-        sourceUrl: item.sourceUrl,
-        thumbnailUrl: item.thumbnailUrl || '',
-        publishedAt: item.publishedAt,
-        fetchedAt: Date.now(),
-      })
-    );
-    await adminDb.transact(txns);
-  }
-
-  console.log(`[news] Inserted ${newItems.length} new items`);
-  return { inserted: newItems.length, errors };
+  return { news: deduplicated, errors, fromCache: false };
 }
