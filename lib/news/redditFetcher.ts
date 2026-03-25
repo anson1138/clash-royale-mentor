@@ -21,7 +21,9 @@ interface RedditPost {
 export async function fetchRedditNews(): Promise<NormalizedNewsItem[]> {
   const response = await fetch(REDDIT_URL, {
     headers: {
-      'User-Agent': 'clash-royale-mentor/1.0 (news aggregator)',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      'Accept': 'application/json',
     },
   });
 
