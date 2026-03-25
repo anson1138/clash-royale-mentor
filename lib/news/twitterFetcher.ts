@@ -29,7 +29,6 @@ interface ApifyTweet {
   };
   media?: Array<{
     media_url_https?: string;
-    url?: string;
   }>;
 }
 
@@ -81,7 +80,7 @@ export async function fetchTwitterNews(): Promise<NormalizedNewsItem[]> {
         tweet.entities?.media?.[0] ||
         tweet.media?.[0];
       const thumbnailUrl =
-        media?.media_url_https || media?.url || undefined;
+        media?.media_url_https || undefined;
 
       const sourceUrl =
         tweet.tweetUrl ||
